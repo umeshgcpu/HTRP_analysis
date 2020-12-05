@@ -1,6 +1,6 @@
 ---
 title: "FP_analysis"
-author: "Umesh"
+author: "Umesh/Suman"
 date: "12/5/2020"
 output: html_document
 ---
@@ -9,13 +9,6 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
----
-  title: "FP test"
-author: "Suman Sapkota"
-date: "12/4/2020"
-output: word_document
----
-  
   ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
@@ -38,6 +31,14 @@ fp <- fp %>%
 
 dim(fp)
 ```
+```{r}
+fp %>%
+  group_by(province) %>%
+  ggplot(aes(clusterno, district)) +
+  geom_col()
+
+```
+
 
 
 ```{r}
@@ -54,7 +55,7 @@ dim(fp)
 fp$provi <- as.factor(fp$province)
 typeof(fp$province)
 levels(fp[,"province"])
-fp$province = factor(fp$province, labels=c("one", "two", "bagmati", "gandaki", "lumbini", "karnali","susurpaschim"))
+fp$province = factor(fp$province, labels=c("Province 1", "Province 2", "Bagmati", "Gandaki", "Lumbini", "Karnali","Susurpaschim"))
 typeof(fp$province)
 levels(fp[,"province"])
 
@@ -62,13 +63,22 @@ fp%>%
   group_by(province) %>%
   count() %>%
   mutate (percent =n/nrow(fp) *100)
+```
+
+```{r}
+fp %>% 
+count((district), sort = T)
+```
 
 
+
+
+```{r}
 #district
 fp$district <- as.factor(fp$district)
 typeof(fp$district)
 levels(fp[,"district"])
-fp$district = factor(fp$district, labels=c("jhapa", "bara", "lalitpur", "syangja", "kapilvastu","pyuthan", "dailekh", "achham", "kailali"))
+# fp$district = factor(fp$district, labels=c("jhapa", "bara", "lalitpur", "syangja","kapilbastu","pyuthan", "dailekh", "achham", "kailali"))
 typeof(fp$district)
 levels(fp[,"district"])
 
@@ -103,8 +113,12 @@ fp$q105 <- factor(as.numeric(fp$q105), levels = c( '1', '2', '3', '4'), labels =
 ```{r}
 fp%>%
   group_by(clusterno) %>%
-  count() %>%
-  mutate (percent =n/nrow(fp) *100)
+  count((clusterno), sort = T)%>%
+  mutate (percent =n/nrow(fp) *100) %>% 
+  ggplot(aes(clusterno, percent))+
+  geom_col()
+
+
 ```
 ```{r}
 fp %>%
@@ -167,7 +181,7 @@ fp%>%
 typeof(fp$q109) 
 fp$q109 <- as.numeric(fp$q109)
 typeof(fp$q109)
-describe(fp$q109)
+
 hist(fp$q109)
 
 fp%>%
@@ -191,14 +205,12 @@ fp%>%
 ```
 
 
-
 ```{r}
 #Age at marriage q110
 typeof(fp$q110)
 fp$q110 <- as.numeric(fp$q110)
 typeof(fp$q110)
-describe(fp$q110)
-hist(fp$q110)
+
 
 fp%>%
   group_by(q110) %>%
@@ -213,9 +225,10 @@ fp <- fp %>%
                                                             ifelse(q110 > 29 & q110 <35, "30-34",
                                                                    ifelse(q110 >34 & q110 <40, "35-39",
                                                                           ifelse (q110 >39 & q110 <45,"40-44", "45-49")))))))))
+```
 
 
-
+```{r}
 fp%>%
   group_by(ageatmarriagegroup) %>%
   count() %>%
@@ -227,20 +240,23 @@ fp%>%
 #HTRP Group of respondents
 
 #Extract cols from file
-fp$adolescent = as.numeric(fp$adolescent)
-fp$young = as.numeric(fp$young)
-fp$rural = as.numeric(fp$rural)
-fp$hilldalit = as.numeric(fp$hilldalit)
-fp$taraidalit = as.numeric(fp$taraidalit)
-fp$muslim = as.numeric(fp$muslim)
-fp$slum = as.numeric(fp$slum)
-fp$geoghtrp = as.numeric(fp$geoghtrp)
-fp$disabled = as.numeric(fp$disabled)
+# fp$adolescent = as.numeric(fp$adolescent)
+# fp$young = as.numeric(fp$young)
+# fp$rural = as.numeric(fp$rural)
+# fp$hilldalit = as.numeric(fp$hilldalit)
+# fp$taraidalit = as.numeric(fp$taraidalit)
+# fp$muslim = as.numeric(fp$muslim)
+# fp$slum = as.numeric(fp$slum)
+# fp$geoghtrp = as.numeric(fp$geoghtrp)
+# fp$disabled = as.numeric(fp$disabled)
 
 #Select the columns
-htrpgrp=data.frame(fp$adolescent, fp$young,fp$rural, fp$hilldalit, fp$taraidalit,fp$muslim, fp$slum, fp$geoghtrp, fp$disabled)
+htrpgrp = data.frame(fp$adolescent, fp$young, fp$rural, fp$hilldalit, fp$taraidalit,fp$muslim, fp$slum, fp$geoghtrp, fp$disabled)
 nrow(htrpgrp)
+```
 
+
+```{r}
 #Get the rows having at least 1 response
 htrpgrp1 = subset(fp, fp$adolescent== 1 | fp$young == 1 |fp$rural ==1 | fp$hilldalit ==1 | fp$taraidalit == 1 |fp$muslim == 1| fp$slum == 1 | fp$geoghtrp == 1 | fp$disabled == 1)
 
@@ -248,7 +264,8 @@ htrpgrp1 = subset(fp, fp$adolescent== 1 | fp$young == 1 |fp$rural ==1 | fp$hilld
 c=colSums(htrpgrp)
 c
 #Add the total number of responses 
-s=sum(htrpgrp)
+fp %>% 
+fp$s=sum(htrpgrp)
 s
 
 #NUmber of rows with at least one response
@@ -422,6 +439,36 @@ fp%>%
   count() %>%
   mutate (percent =n/nrow(fp) *100)
 ```
+
+
+
+
+
+
+
+
+
+```{r}
+library(table1)
+
+label(fp$agegroup) <- "Age"
+label(fp$respcastecode) <- "Caste"
+label(fp$q107) <- "Religion"
+label(fp$district) <- "district"
+label(fp$province) <- "Province"
+label(fp$q122) <- "type of family"
+
+table1 :: table1(~ agegroup + respcastecode + q107 + q105 + province +  q122 | q114, caption = "Summay of Demographic Statistics", data = fp)
+
+```
+
+
+
+
+
+
+
+
 
 ```{r}
 #Distance from HF 
