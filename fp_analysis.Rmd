@@ -1,0 +1,472 @@
+---
+title: "FP_analysis"
+author: "Umesh"
+date: "12/5/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+---
+  title: "FP test"
+author: "Suman Sapkota"
+date: "12/4/2020"
+output: word_document
+---
+  
+  ```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+#Import and view data
+fp <- read.csv("D:/Edrive/HTRP_Binod_sir/data/fp.csv")
+dim(fp)
+fp<- as.data.frame(fp)
+typeof(fp)
+library(tidyverse)
+library(psych)
+View(fp)
+```
+
+```{r}
+#Include data with overall score 7 only
+fp <- fp %>%
+  filter(scoreall == 7 & respondentagree == 1)
+
+dim(fp)
+```
+
+
+```{r}
+#Summary statistics  Overall: TO be added while running final test to avoid knit time
+
+```
+
+```{r}
+#Description of sociodemographic variables
+
+# Location
+
+#Province
+fp$provi <- as.factor(fp$province)
+typeof(fp$province)
+levels(fp[,"province"])
+fp$province = factor(fp$province, labels=c("one", "two", "bagmati", "gandaki", "lumbini", "karnali","susurpaschim"))
+typeof(fp$province)
+levels(fp[,"province"])
+
+fp%>%
+  group_by(province) %>%
+  count() %>%
+  mutate (percent =n/nrow(fp) *100)
+
+
+#district
+fp$district <- as.factor(fp$district)
+typeof(fp$district)
+levels(fp[,"district"])
+fp$district = factor(fp$district, labels=c("jhapa", "bara", "lalitpur", "syangja", "kapilvastu","pyuthan", "dailekh", "achham", "kailali"))
+typeof(fp$district)
+levels(fp[,"district"])
+
+fp%>%
+  group_by(district) %>%
+  count() %>%
+  mutate (percent =n/nrow(fp) *100)
+
+#local level
+fp$locallvlname <- as.factor(fp$locallvlname)
+typeof(fp$locallvlname)
+levels(fp[,"locallvlname"])
+
+
+fp%>%
+  group_by(locallvlname) %>%
+  count() %>%
+  mutate (percent =n/nrow(fp) *100)
+
+#clusternumber
+fp$clusterno <- as.factor(fp$clusterno)
+typeof(fp$clusterno)
+levels(fp[,"clusterno"])
+```
+
+```{r}
+fp$q105 <- factor(as.numeric(fp$q105), levels = c( '1', '2', '3', '4'), labels = c( "Rural", "Urban", "Sub-metro", "Metro"))
+
+```
+
+
+```{r}
+fp%>%
+  group_by(clusterno) %>%
+  count() %>%
+  mutate (percent =n/nrow(fp) *100)
+```
+```{r}
+fp %>%
+  filter(!is.na(district)) %>%
+  ggplot(aes(clusterno, hhno, fill =  province))+
+  geom_col()+
+  coord_flip()
+```
+
+```{r}
+# Type of local level
+fp <- fp %>%
+  mutate(typeoflocal = ifelse(locallvlname == "aathbis"|locallvlname == "chapakot"|locallvlname == "panchadewal"|locallvlname == "bhajani"|locallvlname == "maharajganj", "Municipality", 
+                              ifelse(locallvlname == "lalitpur", "Metropolitan city", "Rural Municipality")))
+
+fp$typeoflocal
+
+fp$typeoflocal <- as.factor(fp$typeoflocal)
+typeof(fp$typeoflocal)
+levels(fp[,"typeoflocal"])
+
+
+fp%>%
+  group_by(typeoflocal) %>%
+  count() %>%
+  mutate (percent =n/nrow(fp) *100)
+
+```
+
+```{r}
+#Religion q107
+fp$q107<- factor(fp$q107)
+typeof(fp$q107)
+levels(fp[,"q107"])
+
+fp$q107 <- factor(as.numeric(fp$q107), levels = c( '1', '2', '3', '4', '5'), labels = c( "Hindu", "Buddhist", "Muslim", "Kirnat", "Christian"))
+
+fp%>%
+  group_by(q107) %>%
+  count() %>%
+  mutate (percent =n/nrow(fp) *100)
+```
+
+
+```{r}
+fp$respcastecode<- as.factor(fp$respcastecode)
+typeof(fp$respcastecode)
+levels(fp[,"respcastecode"])
+
+fp$respcastecode <- factor(as.numeric(fp$respcastecode), levels = c( "1", "2", "3", "4", "5" ,"6", "7", "8", "9", "10","11"), labels = c( "Hill Brahmin", "Hill Chhettri", "Tarai Brahmin/Chhettri", "Other Tarai Caste", "Hill Dalit", "Tarai Dalit", "Newar", "Hill Janajati", "Tarai Janajati"," Muslim", "Others"))
+
+fp%>%
+  group_by(respcastecode) %>%
+  count() %>%
+  mutate (percent =n/nrow(fp) *100)
+
+```
+```{r}
+#Age of respondent q109
+typeof(fp$q109) 
+fp$q109 <- as.numeric(fp$q109)
+typeof(fp$q109)
+describe(fp$q109)
+hist(fp$q109)
+
+fp%>%
+  group_by(q109) %>%
+  count()
+
+# Creating age groups
+fp <- fp %>%
+  mutate(agegroup = ifelse (q109>14 & q109<20, "15-19", 
+                            ifelse(q109>19 & q109<25, "20-24",
+                                   ifelse(q109 >24 & q109 <30, "25-29",
+                                          ifelse(q109 > 29 & q109 <35, "30-34",
+                                                 ifelse(q109 >34 & q109 <40, "35-39",
+                                                        ifelse (q109 >39 & q109 <45,"40-44", "45-49")))))))
+fp$agegroup
+
+fp%>%
+  group_by(agegroup) %>%
+  count() %>%
+  mutate (percent =n/nrow(fp) *100)
+```
+
+
+
+```{r}
+#Age at marriage q110
+typeof(fp$q110)
+fp$q110 <- as.numeric(fp$q110)
+typeof(fp$q110)
+describe(fp$q110)
+hist(fp$q110)
+
+fp%>%
+  group_by(q110) %>%
+  count()
+
+# Creating age groups
+fp <- fp %>%
+  mutate(ageatmarriagegroup = (ifelse(q110<15, "14 or less", 
+                                      ifelse( q110>14 & q110<20, "15-19", 
+                                              ifelse(q110>19 & q110<25, "20-24",
+                                                     ifelse(q110 >24 & q110 <30, "25-29",
+                                                            ifelse(q110 > 29 & q110 <35, "30-34",
+                                                                   ifelse(q110 >34 & q110 <40, "35-39",
+                                                                          ifelse (q110 >39 & q110 <45,"40-44", "45-49")))))))))
+
+
+
+fp%>%
+  group_by(ageatmarriagegroup) %>%
+  count() %>%
+  mutate (percent =n/nrow(fp) *100)
+```
+
+
+```{r}
+#HTRP Group of respondents
+
+#Extract cols from file
+fp$adolescent = as.numeric(fp$adolescent)
+fp$young = as.numeric(fp$young)
+fp$rural = as.numeric(fp$rural)
+fp$hilldalit = as.numeric(fp$hilldalit)
+fp$taraidalit = as.numeric(fp$taraidalit)
+fp$muslim = as.numeric(fp$muslim)
+fp$slum = as.numeric(fp$slum)
+fp$geoghtrp = as.numeric(fp$geoghtrp)
+fp$disabled = as.numeric(fp$disabled)
+
+#Select the columns
+htrpgrp=data.frame(fp$adolescent, fp$young,fp$rural, fp$hilldalit, fp$taraidalit,fp$muslim, fp$slum, fp$geoghtrp, fp$disabled)
+nrow(htrpgrp)
+
+#Get the rows having at least 1 response
+htrpgrp1 = subset(fp, fp$adolescent== 1 | fp$young == 1 |fp$rural ==1 | fp$hilldalit ==1 | fp$taraidalit == 1 |fp$muslim == 1| fp$slum == 1 | fp$geoghtrp == 1 | fp$disabled == 1)
+
+#Add the sum of column (cases)
+c=colSums(htrpgrp)
+c
+#Add the total number of responses 
+s=sum(htrpgrp)
+s
+
+#NUmber of rows with at least one response
+n=nrow(htrpgrp1)
+n
+
+a=round(c/n*100,2) #Percent of Cases
+a #Percent of Cases
+b=round(c/s*100,2) # Percent of Responses
+b
+
+barplot(a) #Cases
+barplot(b) # Responses
+```
+
+```{r}
+#Main job of respondent q112
+fp$q112<- as.factor(fp$q112)
+typeof(fp$q112)
+levels(fp[,"q112"])
+
+fp$q112 <- factor(as.numeric(fp$q112), levels = c( '1', '2', '3', '4', '5', "6", "7", "8"), labels = c( "Housewife", "Agriculture", "Government service", "Private job", "Daily wage","Business", "Foreign employment", "Others"))
+
+
+fp%>%
+  group_by(q112) %>%
+  count() %>%
+  mutate (percent =n/nrow(fp) *100)
+```
+
+```{r}
+#Main job of respondent's husband q113
+fp$q113<- as.factor(fp$q113)
+typeof(fp$q113)
+levels(fp[,"q113"])
+
+fp$q113 <- factor(as.numeric(fp$q113), levels = c( '1', '2', '3', '4', '5', "6", "7"), labels = c( "Agriculture", "Government service", "Private job", "Daily wage labourer","Business", "Foreign employment", "Others"))
+
+
+fp%>%
+  group_by(q113) %>%
+  count() %>%
+  mutate (percent =n/nrow(fp) *100)
+```
+
+```{r}
+#
+```
+
+
+```{r}
+#Respondent's Literacy and education  q114
+fp$q114<- as.factor(fp$q114)
+typeof(fp$q114)
+levels(fp[,"q114"])
+
+fp$q114 <- factor(as.numeric(fp$q114), levels = c( '1', '2'), labels = c("Literate", "Illiterate"))
+
+
+fp%>%
+  group_by(q114) %>%
+  count() %>%
+  mutate (percent =n/nrow(fp) *100)
+
+#Respondent's education
+
+fp$respedun <- as.numeric(fp$respedun)
+describe(fp$respedun)
+```
+
+
+```{r}
+#Respondent's husbands' Literacy and education  q114
+fp$q116<- as.factor(fp$q116)
+typeof(fp$q116)
+levels(fp[,"q116"])
+
+fp$q116 <- factor(as.numeric(fp$q116), levels = c( '1', '2'), labels = c("Literate", "Illiterate"))
+
+
+fp%>%
+  group_by(q116) %>%
+  count() %>%
+  mutate (percent =n/nrow(fp) *100)
+
+#Respondent's education q117
+
+fp$respedun <- as.numeric(fp$q117)
+describe(fp$respedun)
+```
+
+
+```{r}
+#Age of respondent's husband q118
+typeof(fp$q118) 
+fp$q118 <- as.numeric(fp$q118)
+typeof(fp$q118)
+describe(fp$q118)
+hist(fp$q118)
+
+fp%>%
+  group_by(q118) %>%
+  count()
+
+# Creating age groups
+fp <- fp %>%
+  mutate(husagegroup = ifelse (q118 < 15, "14 or less", ifelse(q118>14 & q118<20, "15-19", 
+                                                               ifelse(q118>19 & q118<25, "20-24",
+                                                                      ifelse(q118 >24 & q118 <30, "25-29",
+                                                                             ifelse(q118 > 29 & q118 <35, "30-34",
+                                                                                    ifelse(q118 >34 & q118 <40, "35-39",
+                                                                                           ifelse (q118 >39 & q118<45,"40-44",
+                                                                                                   ifelse(q118>44 & q118<50, "45-49", "50+")))))))))
+
+fp$husagegroup
+
+fp%>%
+  group_by(husagegroup) %>%
+  count() %>%
+  mutate (percent =n/nrow(fp) *100)
+```
+```{r}
+#Spousal age difference
+fp <- fp%>%
+  mutate(spousalagediff = q118-q109)
+
+fp$spousalagediff < as.numeric(fp$spousalagediff)
+
+describe(fp$spousalagediff)
+hist(fp$spousalagediff)
+
+```
+
+```{r}
+#Polygamy q119
+
+fp$q119<- as.factor(fp$q119)
+typeof(fp$q119)
+levels(fp[,"q119"])
+
+fp$q119 <- factor(as.numeric(fp$q119), levels = c( '1', '2'), labels = c("Yes", "No"))
+
+
+fp%>%
+  group_by(q119) %>%
+  count() %>%
+  mutate (percent =n/nrow(fp) *100)
+
+```
+
+```{r}
+#Familysize q121
+fp$q121 <- as.numeric(fp$q121)
+
+describe(fp$q121)
+hist(fp$q121)
+```
+
+```{r}
+#Familytype q122
+
+fp$q122<- as.factor(fp$q122)
+typeof(fp$q122)
+levels(fp[,"q122"])
+
+fp$q122 <- factor(as.numeric(fp$q122), levels = c( '1', '2', '3'), labels = c("Nuclear", "Joint", "Extended"))
+
+
+fp%>%
+  group_by(q122) %>%
+  count() %>%
+  mutate (percent =n/nrow(fp) *100)
+```
+
+```{r}
+#Distance from HF 
+fp$distance <- as.numeric(fp$distance)
+
+describe(fp$distance)
+hist(fp$distance)
+```
+```{r}
+#Currentlylivingwith spouse 120a
+fp$q120a<- as.factor(fp$q120a)
+typeof(fp$q120a)
+levels(fp[,"q120a"])
+
+fp$q120a <- factor(as.numeric(fp$q120a), levels = c( '1', '2'), labels = c("Yes", "No"))
+
+
+fp%>%
+  group_by(q120a) %>%
+  count() %>%
+  mutate (percent =n/nrow(fp) *100)
+
+
+#Duratrion since marriage
+fp <- fp %>%
+  mutate(marrieduration = q109-q110)
+fp$marrieduration
+# How long with spouse 120b (requires cleaning ; Current age < Age at marriage)
+
+
+```
+```{r}
+#Husbandmigration
+
+fp$migration<- as.factor(fp$migration)
+typeof(fp$migration)
+levels(fp[,"migration"])
+
+fp$migration <- factor(as.numeric(fp$migration), levels = c( '1', '2', '3'), labels = c("Same district", "Different district", "Outside Nepal"))
+
+
+fp %>%
+  filter(migration == "Same district"  | migration == "Different district" | migration == "Outside Nepal") %>%
+  group_by(migration) %>%
+  count() %>%
+  mutate (percent =n/nrow(fp) *100)
+
+```
