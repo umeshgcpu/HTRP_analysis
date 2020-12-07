@@ -158,7 +158,7 @@ fp$q107<- factor(fp$q107)
 typeof(fp$q107)
 levels(fp[,"q107"])
 
-fp$q107 <- factor(as.numeric(fp$q107), levels = c( '1', '2', '3', '4', '5'), labels = c( "Hindu", "Buddhist", "Muslim", "Kirnat", "Christian"))
+fp$q107 <- factor(as.numeric(fp$q107), levels = c( '1', '2', '3', '4', '5'), labels = c( "Hindu", "Buddhist", "Muslim", "Kirant", "Christian"))
 
 fp%>%
   group_by(q107) %>%
