@@ -244,15 +244,15 @@ fp%>%
 #HTRP Group of respondents
 
 #Extract cols from file
-# fp$adolescent = as.numeric(fp$adolescent)
-# fp$young = as.numeric(fp$young)
-# fp$rural = as.numeric(fp$rural)
-# fp$hilldalit = as.numeric(fp$hilldalit)
-# fp$taraidalit = as.numeric(fp$taraidalit)
-# fp$muslim = as.numeric(fp$muslim)
-# fp$slum = as.numeric(fp$slum)
-# fp$geoghtrp = as.numeric(fp$geoghtrp)
-# fp$disabled = as.numeric(fp$disabled)
+fp$adolescent = as.numeric(fp$adolescent)
+fp$young = as.numeric(fp$young)
+fp$rural = as.numeric(fp$rural)
+fp$hilldalit = as.numeric(fp$hilldalit)
+fp$taraidalit = as.numeric(fp$taraidalit)
+fp$muslim = as.numeric(fp$muslim)
+fp$slum = as.numeric(fp$slum)
+fp$geoghtrp = as.numeric(fp$geoghtrp)
+fp$disabled = as.numeric(fp$disabled)
 
 #Select the columns
 htrpgrp = data.frame(fp$adolescent, fp$young, fp$rural, fp$hilldalit, fp$taraidalit,fp$muslim, fp$slum, fp$geoghtrp, fp$disabled)
