@@ -239,11 +239,10 @@ fp%>%
   mutate (percent =n/nrow(fp) *100)
 ```
 
-
 ```{r}
 #HTRP Group of respondents
 
-#Extract cols from file
+#Extract columns from fp
 fp$adolescent = as.numeric(fp$adolescent)
 fp$young = as.numeric(fp$young)
 fp$rural = as.numeric(fp$rural)
@@ -255,21 +254,17 @@ fp$geoghtrp = as.numeric(fp$geoghtrp)
 fp$disabled = as.numeric(fp$disabled)
 
 #Select the columns
-htrpgrp = data.frame(fp$adolescent, fp$young, fp$rural, fp$hilldalit, fp$taraidalit,fp$muslim, fp$slum, fp$geoghtrp, fp$disabled)
+htrpgrp=data.frame(fp$adolescent, fp$young,fp$rural, fp$hilldalit, fp$taraidalit,fp$muslim, fp$slum, fp$geoghtrp, fp$disabled)
 nrow(htrpgrp)
-```
 
-
-```{r}
 #Get the rows having at least 1 response
-htrpgrp1 = subset(fp, fp$adolescent== 1 | fp$young == 1 |fp$rural ==1 | fp$hilldalit ==1 | fp$taraidalit == 1 |fp$muslim == 1| fp$slum == 1 | fp$geoghtrp == 1 | fp$disabled == 1)
+htrpgrp1 = subset(fp, fp$adolescent== 1 | fp$young == 1 | fp$rural ==1 | fp$hilldalit ==1 | fp$taraidalit == 1 | fp$muslim == 1 | fp$slum == 1 | fp$geoghtrp == 1 | fp$disabled == 1)
 
 #Add the sum of column (cases)
 c=colSums(htrpgrp)
 c
 #Add the total number of responses 
-fp %>% 
-fp$s=sum(htrpgrp)
+s=sum(htrpgrp)
 s
 
 #NUmber of rows with at least one response
@@ -550,9 +545,9 @@ describe(fp$cheaputen1)
 iwi <- fp%>%
   filter(tv != 3 & fridge != 3 & phone != 3 & twowheel != 3 & threewheel != 3 & cheaputen1 != 3 & exputen != 3 & electricity != 3 & water != 4 &  toilet != 4 & floor != 4 & sroom != 4)
 
-nonmissing = nrow(fpiwi) #Nonmissing rows
+nonmissing = nrow(iwi) #Nonmissing rows
 nonmissing
-missing = nrow(fp) - nrow (fpiwi) #Missing rows' number
+missing = nrow(fp) - nrow(iwi) #Missing rows' number
 missing
 
 #Syntax to recode 1,2 and 3s and reassign weights
