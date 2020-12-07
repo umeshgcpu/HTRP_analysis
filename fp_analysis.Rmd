@@ -133,6 +133,10 @@ fp %>%
 fp <- fp %>%
   mutate(typeoflocal = ifelse(locallvlname == "aathbis"|locallvlname == "chapakot"|locallvlname == "panchadewal"|locallvlname == "bhajani"|locallvlname == "maharajganj", "Municipality", 
                               ifelse(locallvlname == "lalitpur", "Metropolitan city", "Rural Municipality")))
+     
+#Urbanrural
+  fp <- fp %>%
+  mutate(typeoflocal1 = ifelse(locallvlname == "aathbis"|locallvlname == "chapakot"|locallvlname == "panchadewal"|locallvlname == "bhajani"|locallvlname == "maharajganj"|locallvlname == "lalitpur", "Urban", "Rural"))
 
 fp$typeoflocal
 
