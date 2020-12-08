@@ -1,0 +1,805 @@
+---
+title: "FP_analysis"
+author: "Umesh/Suman"
+date: "12/5/2020"
+output:
+  html_document: default
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+#Import and view data
+fp <- read.csv("/Users/suman/Documents/Suman/PSD-GHAN-GASD/GoN consultancies/Recent EoIs GoN/FP/Analysis/Test/fp.csv", stringsAsFactors = FALSE)
+dim(fp)
+fp<- as.data.frame(fp)
+typeof(fp)
+library(tidyverse)
+library(psych)
+View(fp)
+```
+
+```{r}
+#Include data with overall score 7 only
+fp <- fp %>%
+  filter(scoreall == 7 & respondentagree == 1)
+
+dim(fp)
+```
+```{r}
+fp %>%
+  group_by(province) %>%
+  ggplot(aes(clusterno, district)) +
+  geom_col()
+
+```
+
+
+
+```{r}
+#Summary statistics  Overall: TO be added while running final test to avoid knit time
+
+```
+
+```{r}
+#Description of sociodemographic variables
+
+# Location
+
+#Province
+fp$provi <- as.factor(fp$province)
+typeof(fp$province)
+levels(fp[,"province"])
+fp$province = factor(fp$province, labels=c("Province 1", "Province 2", "Bagmati", "Gandaki", "Lumbini", "Karnali","Susurpaschim"))
+typeof(fp$province)
+levels(fp[,"province"])
+
+fp%>%
+  group_by(province) %>%
+  count() %>%
+  mutate (percent =n/nrow(fp) *100)
+```
+
+```{r}
+fp %>% 
+count((district), sort = T)
+```
+
+
+
+
+```{r}
+#district
+fp$district <- as.factor(fp$district)
+typeof(fp$district)
+levels(fp[,"district"])
+# fp$district = factor(fp$district, labels=c("jhapa", "bara", "lalitpur", "syangja","kapilbastu","pyuthan", "dailekh", "achham", "kailali"))
+typeof(fp$district)
+levels(fp[,"district"])
+
+fp%>%
+  group_by(district) %>%
+  count() %>%
+  mutate (percent =n/nrow(fp) *100)
+
+#local level
+fp$locallvlname <- as.factor(fp$locallvlname)
+typeof(fp$locallvlname)
+levels(fp[,"locallvlname"])
+
+
+fp%>%
+  group_by(locallvlname) %>%
+  count() %>%
+  mutate (percent =n/nrow(fp) *100)
+
+#clusternumber
+fp$clusterno <- as.factor(fp$clusterno)
+typeof(fp$clusterno)
+levels(fp[,"clusterno"])
+```
+
+```{r}
+fp$q105 <- factor(as.numeric(fp$q105), levels = c( '1', '2', '3', '4'), labels = c( "Rural", "Urban", "Sub-metro", "Metro"))
+
+```
+
+
+```{r}
+fp%>%
+  group_by(clusterno) %>%
+  count((clusterno), sort = T)%>%
+  mutate (percent =n/nrow(fp) *100) %>% 
+  ggplot(aes(clusterno, percent))+
+  geom_col()
+
+
+```
+```{r}
+fp %>%
+  filter(!is.na(district)) %>%
+  ggplot(aes(clusterno, hhno, fill =  province))+
+  geom_col()+
+  coord_flip()
+```
+
+```{r}
+# Type of local level
+fp <- fp %>%
+  mutate(typeoflocal = ifelse(locallvlname == "aathbis"|locallvlname == "chapakot"|locallvlname == "panchadewal"|locallvlname == "bhajani"|locallvlname == "maharajganj", "Municipality", 
+                              ifelse(locallvlname == "lalitpur", "Metropolitan city", "Rural Municipality")))
+     
+#Urbanrural
+  fp <- fp %>%
+  mutate(typeoflocal1 = ifelse(locallvlname == "aathbis"|locallvlname == "chapakot"|locallvlname == "panchadewal"|locallvlname == "bhajani"|locallvlname == "maharajganj"|locallvlname == "lalitpur", "Urban", "Rural"))
+
+
+
+fp$typeoflocal <- as.factor(fp$typeoflocal)
+typeof(fp$typeoflocal)
+levels(fp[,"typeoflocal"])
+fp%>%
+  group_by(typeoflocal) %>%
+  count() %>%
+  mutate (percent =n/nrow(fp) *100)
+
+
+fp$typeoflocal1 <- as.factor(fp$typeoflocal1)
+typeof(fp$typeoflocal1)
+levels(fp[,"typeoflocal1"])
+fp%>%
+  group_by(typeoflocal1) %>%
+  count() %>%
+  mutate (percent =n/nrow(fp) *100)
+
+```
+
+```{r}
+#Religion q107
+fp$q107<- factor(fp$q107)
+typeof(fp$q107)
+levels(fp[,"q107"])
+
+fp$q107 <- factor(as.numeric(fp$q107), levels = c( '1', '2', '3', '4', '5'), labels = c( "Hindu", "Buddhist", "Muslim", "Kirant", "Christian"))
+
+fp%>%
+  group_by(q107) %>%
+  count() %>%
+  mutate (percent =n/nrow(fp) *100)
+```
+
+
+```{r}
+#Respondent's caste
+fp$respcastecode<- as.factor(fp$respcastecode)
+typeof(fp$respcastecode)
+levels(fp[,"respcastecode"])
+
+fp$respcastecode <- factor(as.numeric(fp$respcastecode), levels = c( "1", "2", "3", "4", "5" ,"6", "7", "8", "9", "10","11"), labels = c( "Hill Brahmin", "Hill Chhettri", "Tarai Brahmin/Chhettri", "Other Tarai Caste", "Hill Dalit", "Tarai Dalit", "Newar", "Hill Janajati", "Tarai Janajati"," Muslim", "Others"))
+
+fp%>%
+  group_by(respcastecode) %>%
+  count() %>%
+  mutate (percent =n/nrow(fp) *100)
+
+```
+```{r}
+#Age of respondent q109
+typeof(fp$q109) 
+fp$q109 <- as.numeric(fp$q109)
+typeof(fp$q109)
+
+hist(fp$q109)
+
+fp%>%
+  group_by(q109) %>%
+  count()
+
+# Creating age groups
+fp <- fp %>%
+  mutate(agegroup = ifelse (q109>14 & q109<20, "15-19", 
+                            ifelse(q109>19 & q109<25, "20-24",
+                                   ifelse(q109 >24 & q109 <30, "25-29",
+                                          ifelse(q109 > 29 & q109 <35, "30-34",
+                                                 ifelse(q109 >34 & q109 <40, "35-39",
+                                                        ifelse (q109 >39 & q109 <45,"40-44", "45-49")))))))
+fp$agegroup
+
+fp%>%
+  group_by(agegroup) %>%
+  count() %>%
+  mutate (percent =n/nrow(fp) *100)
+```
+
+
+```{r}
+#Age at marriage q110
+typeof(fp$q110)
+fp$q110 <- as.numeric(fp$q110)
+typeof(fp$q110)
+
+
+fp%>%
+  group_by(q110) %>%
+  count()
+
+# Creating age groups
+fp <- fp %>%
+  mutate(ageatmarriagegroup = (ifelse(q110<15, "14 or less", 
+                                      ifelse( q110>14 & q110<20, "15-19", 
+                                              ifelse(q110>19 & q110<25, "20-24",
+                                                     ifelse(q110 >24 & q110 <30, "25-29",
+                                                            ifelse(q110 > 29 & q110 <35, "30-34", "35 or more")))))))
+#Ageatmarriage group                                                               
+fp%>%
+  group_by(ageatmarriagegroup) %>%
+  count() %>%
+  mutate (percent =n/nrow(fp) *100)
+```
+
+
+```{r}
+#HTRP Group of respondents
+
+#Extract columns from fp
+fp$adolescent = as.numeric(fp$adolescent)
+fp$young = as.numeric(fp$young)
+fp$rural = as.numeric(fp$rural)
+fp$hilldalit = as.numeric(fp$hilldalit)
+fp$taraidalit = as.numeric(fp$taraidalit)
+fp$muslim = as.numeric(fp$muslim)
+fp$slum = as.numeric(fp$slum)
+fp$geoghtrp = as.numeric(fp$geoghtrp)
+fp$disabled = as.numeric(fp$disabled)
+
+#Select the columns
+htrpgrp=data.frame(fp$adolescent, fp$young,fp$rural, fp$hilldalit, fp$taraidalit,fp$muslim, fp$slum, fp$geoghtrp, fp$disabled)
+nrow(htrpgrp)
+
+#Get the rows having at least 1 response
+htrpgrp1 = subset(fp, fp$adolescent== 1 | fp$young == 1 | fp$rural ==1 | fp$hilldalit ==1 | fp$taraidalit == 1 | fp$muslim == 1 | fp$slum == 1 | fp$geoghtrp == 1 | fp$disabled == 1)
+
+#Add the sum of column (cases)
+c=colSums(htrpgrp)
+c
+#Add the total number of responses 
+s=sum(htrpgrp)
+s
+
+#NUmber of rows with at least one response
+n=nrow(htrpgrp1)
+n
+
+a=round(c/n*100,2) #Percent of Cases
+a #Percent of Cases
+b=round(c/s*100,2) # Percent of Responses
+b
+
+barplot(a) #Cases
+barplot(b) # Responses
+```
+
+```{r}
+#Main job of respondent q112
+fp$q112<- as.factor(fp$q112)
+typeof(fp$q112)
+levels(fp[,"q112"])
+
+fp$q112 <- factor(as.numeric(fp$q112), levels = c( '1', '2', '3', '4', '5', "6", "7", "8", "9"), labels = c( "Housewife", "Agriculture", "Paid employment (Private job, Daily wage, Foreign employment)", "Paid employment (Private job, Daily wage, Foreign employment)", "Paid employment (Private job, Daily wage, Foreign employment)", "Paid employment (Private job, Daily wage, Foreign employment)","Paid employment (Private job, Daily wage, Foreign employment)", "Paid employment (Private job, Daily wage, Foreign employment)", "Others"))
+
+
+fp%>%
+  group_by(q112) %>%
+  count() %>%
+  mutate (percent =n/nrow(fp) *100)
+
+```
+
+```{r}
+#Main job of respondent's husband q113
+fp$q113<- as.factor(fp$q113)
+typeof(fp$q113)
+levels(fp[,"q113"])
+
+fp$q113 <- factor(as.numeric(fp$q113), levels = c( '1', '2', '3', '4', '5', "6", "7"), labels = c( "Agriculture", "Government service", "Private service", "Daily wage / labourer","Business", "Foreign employment", "Others"))
+
+
+fp%>%
+  group_by(q113) %>%
+  count() %>%
+  mutate (percent =n/nrow(fp) *100)
+```
+
+```{r}
+# Respondent's Literacy and education  q114
+
+levels(fp[,"q114"])
+
+fp$q114 <- factor(as.numeric(fp$q114), levels = c( '1', '2'), labels = c("Literate", "Illiterate"))
+
+
+fp%>%
+  group_by(q114) %>%
+  count() %>%
+  mutate (percent =n/nrow(fp) *100)
+
+#Respondent's education
+
+fp$respedun <- as.numeric(fp$respedun)
+describe(fp$respedun)
+
+
+
+#Categorizing the education into five groups; 0 means no formal education and 20 means illiterate
+fp$respedun <-  replace_na(fp$respedun, 20)
+fp <- fp %>%
+  mutate(respedungrp = ifelse(respedun >0 & respedun <6, "Primary",
+                              ifelse(respedun > 5 & respedun <11, "Secondary",
+                                     ifelse(respedun >10 & respedun < 13, "+2 or equivalent",
+                                            ifelse(respedun >12 & respedun <20, "Bachelor or higher",
+                                                   ifelse(respedun == 20 | respedun == 0, "None", "")))))) 
+
+fp$respedungrp <- ordered(fp$respedungrp, levels = c("None", "Primary", "Secondary", "+2 or equivalent", "Bachelor or higher"))
+
+
+
+ggplot(fp, aes(respedungrp)) +
+  geom_bar()
+
+
+```
+
+
+```{r}
+#Respondent's husbands' Literacy and education  q114
+fp$q116<- as.factor(fp$q116)
+typeof(fp$q116)
+levels(fp[,"q116"])
+
+fp$q116 <- factor(as.numeric(fp$q116), levels = c( '1', '2'), labels = c("Literate", "Illiterate"))
+
+
+fp%>%
+  group_by(q116) %>%
+  count() %>%
+  mutate (percent =n/nrow(fp) *100)
+
+#Respondent's education q117
+
+fp$q117 <- as.numeric(fp$q117)
+describe(fp$q117)
+
+
+
+#Categorizing the education into five groups; 0 means no formal education and 20 means illiterate
+fp$q117 <-  replace_na(fp$q117, 20)
+fp <- fp %>%
+  mutate(husbedungrp = ifelse(q117 >0 & q117 <6, "Primary",
+                              ifelse(q117 > 5 & q117 <11, "Secondary",
+                                     ifelse(q117 >10 & q117 < 13, "+2 or equivalent",
+                                            ifelse(q117 >12 & q117 <20, "Bachelor or higher",
+                                                   ifelse(q117 == 20 | q117 == 0, "None", "")))))) 
+
+fp$husbedungrp <- ordered(fp$husbedungrp, levels = c("None", "Primary", "Secondary", "+2 or equivalent", "Bachelor or higher"))
+
+
+ggplot(fp, aes(husbedungrp)) +
+  geom_bar()
+
+```
+
+
+```{r}
+#Age of respondent's husband q118
+typeof(fp$q118) 
+fp$q118 <- as.numeric(fp$q118)
+typeof(fp$q118)
+describe(fp$q118)
+hist(fp$q118)
+
+fp%>%
+  group_by(q118) %>%
+  count()
+
+# Creating age groups
+fp <- fp %>%
+  mutate(husagegroup = ifelse (q118 < 15, "14 or less", ifelse(q118>14 & q118<20, "15-19", 
+                                                               ifelse(q118>19 & q118<25, "20-24",
+                                                                      ifelse(q118 >24 & q118 <30, "25-29",
+                                                                             ifelse(q118 > 29 & q118 <35, "30-34",
+                                                                                    ifelse(q118 >34 & q118 <40, "35-39",
+                                                                                           ifelse (q118 >39 & q118<45,"40-44",
+                                                                                                   ifelse(q118>44 & q118<50, "45-49", "50+")))))))))
+
+fp$husagegroup
+
+fp%>%
+  group_by(husagegroup) %>%
+  count() %>%
+  mutate (percent =n/nrow(fp) *100)
+```
+```{r}
+#Spousal age difference
+fp$q118 <- as.numeric(fp$q118)
+fp$q109 <- as.numeric(fp$q109)
+fp <- fp%>%
+  mutate(spousalagediff = q118-q109)
+fp$spousalagediff
+
+describe(fp$spousalagediff)
+hist(fp$spousalagediff)
+
+fp <- fp%>%
+  mutate (spouseagediffgrp = ifelse(spousalagediff < 0, "Woman older",
+                                    ifelse(spousalagediff >= 0 & spousalagediff <5, "Man 0-4 years older",
+                                           ifelse(spousalagediff >4 & spousalagediff <10, "Man 5-9 years older",
+                                                  ifelse(spousalagediff > 9, "Man 10+ years older", "Other")))))
+
+fp$spouseagediffgrp <- ordered(fp$spouseagediffgrp, labels = c("Woman Older", "Man 0-4 years older", "Man 5-9 years older", "Man 10+ years older" ))
+
+
+```
+
+```{r}
+#Polygamy q119
+
+fp$q119<- as.factor(fp$q119)
+typeof(fp$q119)
+levels(fp[,"q119"])
+
+fp$q119 <- factor(as.numeric(fp$q119), levels = c( '1', '2'), labels = c("Yes", "No"))
+
+
+fp%>%
+  group_by(q119) %>%
+  count() %>%
+  mutate (percent =n/nrow(fp) *100)
+
+```
+
+```{r}
+#Familysize q121
+fp$q121 <- as.numeric(fp$q121)
+
+describe(fp$q121)
+hist(fp$q121)
+```
+
+```{r}
+#Familytype q122
+
+fp$q122<- as.factor(fp$q122)
+typeof(fp$q122)
+levels(fp[,"q122"])
+
+fp$q122 <- factor(as.numeric(fp$q122), levels = c( '1', '2', '3'), labels = c("Nuclear", "Joint", "Extended"))
+
+
+fp%>%
+  group_by(q122) %>%
+  count() %>%
+  mutate (percent =n/nrow(fp) *100)
+```
+
+```{r}
+#Distance from HF 
+fp$distance <- as.numeric(fp$distance)
+
+describe(fp$distance)
+hist(fp$distance)
+```
+```{r}
+#Currentlylivingwith spouse 120a
+fp$q120a<- as.factor(fp$q120a)
+typeof(fp$q120a)
+levels(fp[,"q120a"])
+
+fp$q120a <- factor(as.numeric(fp$q120a), levels = c( '1', '2'), labels = c("Living with respondent", "Staying elsewhere"))
+
+
+fp%>%
+  group_by(q120a) %>%
+  count() %>%
+  mutate (percent =n/nrow(fp) *100)
+
+
+#Duratrion since marriage
+fp <- fp %>%
+  mutate(marrieduration = q109-q110)
+fp$marrieduration
+# How long with spouse 120b (requires cleaning ; Current age < Age at marriage)
+
+
+```
+```{r}
+#Husbandmigration
+
+fp$migration<- as.factor(fp$migration)
+typeof(fp$migration)
+levels(fp[,"migration"])
+
+fp$migration <- factor(as.numeric(fp$migration), levels = c( '1', '2', '3'), labels = c("Same district", "Different district", "Outside Nepal"))
+
+
+fp %>%
+  filter(migration == "Same district"  | migration == "Different district" | migration == "Outside Nepal") %>%
+  group_by(migration) %>%
+  count() %>%
+  mutate (percent =n/nrow(fp) *100)
+
+```
+
+
+
+
+
+```{r}
+#IWI index
+
+#Make all the variables numeric
+fp$tv <- as.numeric(fp$tv)
+fp$fridge <- as.numeric(fp$fridge)
+fp$phone <- as.numeric(fp$phone)
+fp$twowheel<- as.numeric(fp$twowheel)
+fp$threewheel <- as.numeric(fp$threewheel)
+fp$cheaputen <- as.numeric(fp$cheaputen)
+fp$exputen <- as.numeric(fp$exputen)
+fp$electricity <- as.numeric(fp$electricity)
+fp$water <- as.numeric(fp$water)
+fp$toilet <- as.numeric(fp$toilet)
+fp$floor<- as.numeric(fp$floor)
+fp$sroom<- as.numeric(fp$sroom)
+
+#Check the type
+typeof(fp$tv)
+
+#It is assumed that if a household has a expensive utensil, it also has a cheap utensil.
+fp <- fp %>%
+  mutate(cheaputen1 =  ifelse(tv == 1 | fridge == 1 | phone == 1 | twowheel == 1| threewheel == 1| exputen == 1 | toilet==3 |floor == 3 | cheaputen ==1, 1, 2))
+describe(fp$cheaputen1)
+
+#Check for "Dont know)
+fp <- fp%>%
+  filter(tv != 3 & fridge != 3 & phone != 3 & twowheel != 3 & threewheel != 3 & cheaputen1 != 3 & exputen != 3 & electricity != 3 & water != 4 &  toilet != 4 & floor != 4 & sroom != 4)
+
+nonmissing = nrow(fp) #Nonmissing rows
+nonmissing
+missing = nrow(fp) - nrow (fp) #Missing rows' number
+missing
+
+#Syntax to recode 1,2 and 3s and reassign weights
+fp <- fp %>%
+  mutate(tv1 = ifelse(tv ==1, 8.612657, 0 ))
+
+fp <- fp %>%
+  mutate(fridge1 = ifelse(fridge ==1, 8.429076, 0 ))
+
+fp <- fp %>%
+  mutate(phone1 = ifelse(phone ==1, 7.127699, 0 ))
+
+fp <- fp %>%
+  mutate(twowheel1 = ifelse(twowheel ==1, 1.84686, 0 ))
+
+fp <- fp %>%
+  mutate(threewheel1 = ifelse(threewheel ==1, 4.651382, 0))
+
+fp <- fp %>%
+  mutate(cheaputen2 = ifelse(cheaputen1 ==1, 4.118394, 0))
+
+fp <- fp %>%
+  mutate(exputen1 = ifelse(exputen ==1, 6.507283, 0))
+
+fp <- fp %>%
+  mutate(electricity1 = ifelse(electricity ==1, 8.056664, 0))
+
+fp <- fp %>%
+  mutate(water1 = ifelse(water ==1,-6.306477,
+                         ifelse(water == 2, -2.302023, 7.952443)))
+
+fp <- fp %>%
+  mutate(toilet1 = ifelse(toilet ==1,-7.439841,
+                         ifelse(water == 2, -1.090393, 8.140637)))
+
+fp <- fp %>%
+  mutate(floor1 = ifelse(floor ==1,-7.558471,
+                         ifelse(water == 2, 1.227531, 6.107428)))
+
+
+fp <- fp %>%
+  mutate(sroom1 = ifelse(sroom ==1,-3.699681,
+                         ifelse(water == 2, 0.38405, 3.445009)))
+
+
+# Add a column with 25.00447 as constant
+fp$iwiconst <- 25.00447
+  
+
+#Create a new variable fpscore
+fp <- fp %>%
+  mutate(iwiscore = tv1 + fridge1 + phone1 + twowheel1 + threewheel1 + cheaputen2 + exputen1 +electricity1 + water1 + toilet1 + floor1 + sroom1 + iwiconst)
+
+describe(fp$iwiscore)
+ggplot(fp)+
+  aes(iwiscore)+
+  geom_histogram(binwidth = 5)
+
+
+#Creating a wealth quintile
+library(Hmisc)
+
+fp$quintile <- cut2(fp$iwiscore, g =5)
+
+#Wealth quinitile description
+fp %>%
+  group_by(quintile) %>%
+  count() %>%
+  mutate(percent = n/nrow(fp)*100)
+
+
+#Urban/Rural wealth quintile bar visualization
+ggplot(fp) +
+  aes(typeoflocal1) +
+  geom_bar(aes(fill = quintile)) +
+  xlab("Residence") +
+  ylab("Percentage") +
+  ggtitle("Wealth distribution by Residence")
+
+```
+
+
+
+
+```{r}
+
+# Living children
+fp$q303 <- as.numeric(fp$q303)
+fp$q303 <-  replace_na(fp$q303, 0)
+fp$q304 <- as.numeric(fp$q304)
+fp$q304 <-  replace_na(fp$q304, 0)
+fp$q306 <- as.numeric(fp$q306)
+fp$q306 <-  replace_na(fp$q306, 0)
+fp$q307 <- as.numeric(fp$q307)
+fp$q307 <-  replace_na(fp$q307, 0)
+
+
+fp <- fp %>%
+  mutate(livingchild = q303+q304+q306+q307)
+
+describe(fp$livingchild)
+
+fp$livingchild <-  replace_na(fp$livingchild, 0)
+describe(fp$livingchild)
+
+fp <-  fp %>%
+  mutate(livingchildgrp = ifelse (livingchild == 0, "0",
+                                  ifelse(livingchild == 1, "1",
+                                         ifelse(livingchild == 2, "2",
+                                                ifelse(livingchild == 3, "3",
+                                                       ifelse(livingchild > 5, "5+", "Unknown"))))))
+describe(fp$livingchildgrp)
+
+```
+
+```{r}
+#Table of demographic features
+
+library(table1)
+label(fp$province) <- "Province"
+label(fp$respcastecode) <- "Caste/Ethnicity"
+label(fp$q107) <- "Religion"
+label(fp$agegroup) <- "Age"
+label(fp$respedungrp) <- "Respondent's education"
+label(fp$q112) <- "Respondent's Occupation"
+label(fp$quintile) <- "Wealth"
+label(fp$ageatmarriagegroup) <- "Age at marriage"
+label(fp$livingchildgrp) <- "Number of living children"
+label(fp$husbedungrp) <- "Husband's education"
+label(fp$q113) <- "Husband's occupation"
+label(fp$q120a) <- "Husband's residence"
+label(fp$spouseagediffgrp) <- "Spousal age difference"
+
+
+
+ table1(~ province + respcastecode + q107 + agegroup + respedungrp +  q112 + quintile + ageatmarriagegroup + livingchildgrp + husbedungrp + q113 + q120a + spouseagediffgrp | typeoflocal1, caption = "Summary of Demographic Statistics", data = fp)
+
+```
+
+```{r}
+#Fertility preferences
+#Rename variables as : q610: wantnextpreg , q611:wantnextnonpreg , q612: timenextpreg, q612a: monthnextpreg, q612b: yearnextpreg
+
+fp$yearnextpreg <- as.numeric(fp$yearnextpreg)
+#Do you want next child, NA means sterilized.
+fp <- fp %>%
+  mutate(fertpref = ifelse(wantnextpreg == 1 | wantnextnonpreg == 1, "Have another",
+                            ifelse(wantnextpreg == 2 | wantnextnonpreg == 2, "No more",
+                                   ifelse(wantnextpreg == 3 | wantnextnonpreg == 4, "Undecided",
+                                          ifelse(wantnextnonpreg == 3, "Declared infecund", NA))))) 
+
+group_by(fp, fertpref) %>%
+  count()
+
+#When do you want next child? NA means undecided whether to have next child or sterilized
+fp <- fp%>%
+  mutate(timenextchild =  ifelse(timenextpreg == 6, "Undecided",
+                                  ifelse(wantnextnonpreg == 3, "Declared infecund",
+                                         ifelse(wantnextpreg == 2 | wantnextnonpreg == 2, "Wants no more",
+                                                ifelse(monthnextpreg <=12 | yearnextpreg < 3, "Wants within 2 years",
+                                                       ifelse(yearnextpreg > 2, "Wants after 2+ years", NA)))))) 
+
+
+
+group_by(fp, timenextchild) %>%
+  count()
+
+#Tabulate fertility preferences
+
+label(fp$fertpref) <- "Fertility preferences"
+label(fp$timenextchild) <- "Timing preference"
+
+a<- render.categorical.default(fp$wantnextnonpreg, na.is.category = FALSE)
+b<- render.categorical.default(fp$timenextchild, na.is.category = FALSE)
+table1(~ fertpref+ timenextchild | typeoflocal1, caption = "Fertility preferences of respondents", data = fp)
+table1(~ fertpref+ timenextchild , caption = "Fertility preferences of respondents", data = fp)
+
+
+```
+
+```{r}
+#Autonomy and decisionmaking
+
+#Rename q501: healthdecision, q502: purchasedecision, q503:visitdecision, q632: contrausedecision, q633: contranonusedecision, 
+
+fp$healthdecision <- factor(as.numeric(fp$healthdecision), levels = c( '1', '2', '3', '4'), labels = c("Respondent", "Husband", "Respondent and husband jointly", "Someone else"))
+fp$purchasedecision <- factor(as.numeric(fp$purchasedecision), levels = c( '1', '2', '3', '4'), labels = c("Respondent", "Husband", "Respondent and husband jointly", "Someone else"))
+fp$visitdecision <- factor(as.numeric(fp$visitdecision), levels = c( '1', '2', '3', '4'), labels = c("Respondent", "Husband", "Respondent and husband jointly", "Someone else"))
+
+
+fp <- fp %>%
+  mutate(contradecision = ifelse(contrausedecision == 1, "Respondent",
+                                 ifelse(contranonusedecision == 1, "Respondent",
+                                        ifelse(contrausedecision == 2, "Husband",
+                                        ifelse(contranonusedecision == 2, "Husband",
+                                        ifelse(contrausedecision == 3, "Respondent and husband jointly",
+                                               ifelse(contranonusedecision == 3,"Respondent and husband jointly",
+                                                      ifelse(contrausedecision == 4, "Someone else",
+                                                             ifelse(contranonusedecision == 4, "Someone else", NA)))))))))
+
+label(fp$healthdecision) <- "Decision about health care"
+label(fp$purchasedecision) <- "Decision about major household purchases"
+label(fp$visitdecision) <- "Decision about visits to family or relatives"
+label(fp$contradecision) <- "Decision regarding contraceptive use"
+
+
+
+
+table1::table1(~ healthdecision + purchasedecision + visitdecision + contradecision, caption = "Autonomy and decisonmaking", data = fp )
+
+
+
+
+
+
+```
+
+
+```{r}
+#Preferred source of Family planning information
+
+#Rename q622 to preferredcontrainfo
+fp$preferredcontrainfo <- factor(as.numeric(fp$preferredcontrainfo), levels = c( '1', '2', '3', '4', "5","6", "7", "8", "9", "10", "11", "12"), labels = c("Radio", "Television", "Newspaper", "Text/Voice messages", "Posters/Pamphlets", "Internet", "Street dramas", "Mother's Groups", "Teachers", "FCHVs", "Family members/ Relatives", "Others"))
+
+label(fp$preferredcontrainfo) <- "Preferred source of contraceptive information"
+
+table1(~preferredcontrainfo, caption = "Preferred source of contraceptive information", data = fp)
+```
+
+```{r}
+#Resons for non-use of FP methods
+
+```
+
+
