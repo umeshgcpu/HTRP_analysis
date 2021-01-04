@@ -1502,63 +1502,6 @@ anova(model1, test = "Chisq")
 plot(model1)
 
 tidy(model1)
-
-
-
-#Make variables ready for final model: Remove religion and  recode other variabales: age group, education,age at marriage, husband education,
-
-fp <- fp %>%
-  mutate(magegroup = ifelse (agegroup == "15-19", "15-19",
-                                 ifelse(agegroup == "20-24", "20-24",
-                                        ifelse(agegroup == "25-29", "25-29",
-                                               ifelse (agegroup == "30-34", "30-34",
-                                                       ifelse(agegroup == "35-39", "35-39","40 -49"))))))
-fp <- fp %>%
-  mutate(mrespedungrp = ifelse(respedungrp == "None", "None",
-                               ifelse(respedungrp == "Primary", "Primary",
-                                      ifelse(respedungrp == "Secondary", "Secondary", "+2 and above"))))
-
-
-fp <- fp %>%
-  mutate(mageatmarriagegroup = ifelse (ageatmarriagegroup == "14 or less", "14 or less",
-                                       ifelse(ageatmarriagegroup == "15-19", "15-19",
-                                              ifelse(ageatmarriagegroup == "20-24", "20-24", "25 and above"))))
-  
-
-fp <- fp %>%
-  mutate(mhusbedungrp = ifelse(husbedungrp == "None", "None",
-                               ifelse(husbedungrp == "Primary", "Primary",
-                                      ifelse(husbedungrp == "Secondary", "Secondary", "+2 and above"))))
-
-fp <- fp %>%
-  mutate(mq122 = ifelse(q122 == "Nuclear", "Nuclear", "Joint or extended"))
-
-#Final model
-model2 <- glm(factor(fp$everusecontra) ~ factor(fp$province) + + factor(fp$typeoflocal1) + factor(fp$respcastecode) +  factor(fp$magegroup) + factor(fp$mrespedungrp) + factor(fp$q112) + factor(fp$quintile) + factor(fp$mageatmarriagegroup) + factor(fp$q119) + factor(fp$livingchildgrp) + factor(fp$mhusbedungrp) + factor(fp$q113) + factor(fp$q120a) + factor(fp$spouseagediffgrp) + factor(fp$mq122)  , family = binomial(link = "logit"))
-summary(model2)
-od <- exp(model2$coefficients)
-od
-confint(model2)
-
-# Let's see the model summary from summ function of jtools package
-summ(model2, confint = TRUE,  pvals = TRUE, exp = TRUE)
-summ(model2, robust = F)
-
-
-VIF(model2)
-
-HL3 <- hoslem.test(x= model1$y, y= fitted(model1), g=10)
-HL3
-
-Cstat(model2)
-
-anova(model2, test = "Chisq")
-
-plot(model2)
-
-tidy(model2)
-
-
 ```
 
 
