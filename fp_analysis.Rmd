@@ -2,25 +2,26 @@
 title: "FP_analysis"
 author: "Umesh/Suman"
 date: "12/5/2020"
-output: html_document
+output:
+  html_document: default
+  word_document: default
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-  ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
 ```{r}
 #Import and view data
-fp <- read.csv("D:/Edrive/HTRP_Binod_sir/data/fp.csv")
+fp <- read.csv("/Users/suman/Documents/Suman/PSD-GHAN-GASD/GoN consultancies/Recent EoIs GoN/FP/Analysis/Test/fp.csv", stringsAsFactors = FALSE)
 dim(fp)
 fp<- as.data.frame(fp)
 typeof(fp)
 library(tidyverse)
 library(psych)
+library(table1)
+library(ggsci)
+library(arsenal)
 View(fp)
 ```
 
@@ -30,16 +31,8 @@ fp <- fp %>%
   filter(scoreall == 7 & respondentagree == 1)
 
 dim(fp)
-```
-```{r}
-fp %>%
-  group_by(province) %>%
-  ggplot(aes(clusterno, district)) +
-  geom_col()
 
 ```
-
-
 
 ```{r}
 #Summary statistics  Overall: TO be added while running final test to avoid knit time
@@ -47,18 +40,10 @@ fp %>%
 ```
 
 ```{r}
+
 #Description of sociodemographic variables
-
+class(fp$province)
 # Location
-
-#Province
-fp$provi <- as.factor(fp$province)
-typeof(fp$province)
-levels(fp[,"province"])
-fp$province = factor(fp$province, labels=c("Province 1", "Province 2", "Bagmati", "Gandaki", "Lumbini", "Karnali","Susurpaschim"))
-typeof(fp$province)
-levels(fp[,"province"])
-
 fp%>%
   group_by(province) %>%
   count() %>%
@@ -75,23 +60,12 @@ count((district), sort = T)
 
 ```{r}
 #district
-fp$district <- as.factor(fp$district)
-typeof(fp$district)
-levels(fp[,"district"])
-# fp$district = factor(fp$district, labels=c("jhapa", "bara", "lalitpur", "syangja","kapilbastu","pyuthan", "dailekh", "achham", "kailali"))
-typeof(fp$district)
-levels(fp[,"district"])
-
 fp%>%
   group_by(district) %>%
   count() %>%
   mutate (percent =n/nrow(fp) *100)
 
 #local level
-fp$locallvlname <- as.factor(fp$locallvlname)
-typeof(fp$locallvlname)
-levels(fp[,"locallvlname"])
-
 
 fp%>%
   group_by(locallvlname) %>%
@@ -99,9 +73,11 @@ fp%>%
   mutate (percent =n/nrow(fp) *100)
 
 #clusternumber
-fp$clusterno <- as.factor(fp$clusterno)
-typeof(fp$clusterno)
-levels(fp[,"clusterno"])
+fp%>%
+  group_by(clusterno) %>%
+  count() %>%
+  mutate (percent =n/nrow(fp) *100)
+
 ```
 
 ```{r}
@@ -131,22 +107,31 @@ fp %>%
 ```{r}
 # Type of local level
 fp <- fp %>%
-  mutate(typeoflocal = ifelse(locallvlname == "aathbis"|locallvlname == "chapakot"|locallvlname == "panchadewal"|locallvlname == "bhajani"|locallvlname == "maharajganj", "Municipality", 
+  mutate(typeoflocal = ifelse(locallvlname == "aathbis"|locallvlname == "chapakot"|locallvlname == "panchadewal"|locallvlname == "bhajani"|locallvlname == "maharjganj" | locallvlname == "mahalaxmidhan", "Municipality", 
                               ifelse(locallvlname == "lalitpur", "Metropolitan city", "Rural Municipality")))
      
+
+
 #Urbanrural
   fp <- fp %>%
-  mutate(typeoflocal1 = ifelse(locallvlname == "aathbis"|locallvlname == "chapakot"|locallvlname == "panchadewal"|locallvlname == "bhajani"|locallvlname == "maharajganj"|locallvlname == "lalitpur", "Urban", "Rural"))
+  mutate(typeoflocal1 = ifelse(locallvlname == "aathbis"|locallvlname == "chapakot"|locallvlname == "panchadewal"|locallvlname == "bhajani"|locallvlname == "maharjganj"|locallvlname == "lalitpur" | locallvlname == "mahalaxmidhan", "Urban", "Rural"))
 
-fp$typeoflocal
+
 
 fp$typeoflocal <- as.factor(fp$typeoflocal)
 typeof(fp$typeoflocal)
 levels(fp[,"typeoflocal"])
-
-
 fp%>%
   group_by(typeoflocal) %>%
+  count() %>%
+  mutate (percent =n/nrow(fp) *100)
+
+
+fp$typeoflocal1 <- as.factor(fp$typeoflocal1)
+typeof(fp$typeoflocal1)
+levels(fp[,"typeoflocal1"])
+fp%>%
+  group_by(typeoflocal1) %>%
   count() %>%
   mutate (percent =n/nrow(fp) *100)
 
@@ -154,9 +139,6 @@ fp%>%
 
 ```{r}
 #Religion q107
-fp$q107<- factor(fp$q107)
-typeof(fp$q107)
-levels(fp[,"q107"])
 
 fp$q107 <- factor(as.numeric(fp$q107), levels = c( '1', '2', '3', '4', '5'), labels = c( "Hindu", "Buddhist", "Muslim", "Kirant", "Christian"))
 
@@ -168,16 +150,24 @@ fp%>%
 
 
 ```{r}
-fp$respcastecode<- as.factor(fp$respcastecode)
-typeof(fp$respcastecode)
-levels(fp[,"respcastecode"])
+#Respondent's caste
 
-fp$respcastecode <- factor(as.numeric(fp$respcastecode), levels = c( "1", "2", "3", "4", "5" ,"6", "7", "8", "9", "10","11"), labels = c( "Hill Brahmin", "Hill Chhettri", "Tarai Brahmin/Chhettri", "Other Tarai Caste", "Hill Dalit", "Tarai Dalit", "Newar", "Hill Janajati", "Tarai Janajati"," Muslim", "Others"))
+fp$respcastecode1 <- factor(as.numeric(fp$respcastecode1), levels = c( "1", "2", "3", "4", "5" ,"6", "7", "8", "9", "10"), labels = c( "Hill Brahmin", "Hill Chhettri", "Tarai Brahmin/Chhettri", "Other Tarai Caste", "Hill Dalit", "Tarai Dalit", "Newar", "Hill Janajati", "Tarai Janajati","Muslim"))
 
-fp%>%
+fp <- fp %>%
+  mutate(respcastecode = ifelse(respcastecode1 == "Hill Brahmin" | respcastecode1 ==  "Hill Chhettri" | respcastecode1 == "Tarai Brahmin/Chhettri", "Brahmin/Chhettri",  ifelse(respcastecode1 == "Hill Dalit", "Hill Dalit",
+                                       ifelse(respcastecode1 == "Tarai Dalit", "Tarai Dalit",
+                                              ifelse(respcastecode1 == "Hill Janajati", "Hill Janajati",
+                                                      ifelse(respcastecode1 == "Tarai Janajati", "Tarai Janajati",
+                                                             ifelse(respcastecode1 == "Muslim", "Muslim", "Others")))))))
+
+
+ fp%>%
   group_by(respcastecode) %>%
   count() %>%
-  mutate (percent =n/nrow(fp) *100)
+  mutate (percent =n/nrow(fp) *100) %>%
+  arrange(desc(n))
+
 
 ```
 ```{r}
@@ -186,6 +176,7 @@ typeof(fp$q109)
 fp$q109 <- as.numeric(fp$q109)
 typeof(fp$q109)
 
+summary(fp$q109)
 hist(fp$q109)
 
 fp%>%
@@ -200,8 +191,6 @@ fp <- fp %>%
                                           ifelse(q109 > 29 & q109 <35, "30-34",
                                                  ifelse(q109 >34 & q109 <40, "35-39",
                                                         ifelse (q109 >39 & q109 <45,"40-44", "45-49")))))))
-fp$agegroup
-
 fp%>%
   group_by(agegroup) %>%
   count() %>%
@@ -214,6 +203,7 @@ fp%>%
 typeof(fp$q110)
 fp$q110 <- as.numeric(fp$q110)
 typeof(fp$q110)
+summary(fp$q110)
 
 
 fp%>%
@@ -226,59 +216,15 @@ fp <- fp %>%
                                       ifelse( q110>14 & q110<20, "15-19", 
                                               ifelse(q110>19 & q110<25, "20-24",
                                                      ifelse(q110 >24 & q110 <30, "25-29",
-                                                            ifelse(q110 > 29 & q110 <35, "30-34",
-                                                                   ifelse(q110 >34 & q110 <40, "35-39",
-                                                                          ifelse (q110 >39 & q110 <45,"40-44", "45-49")))))))))
-```
-
-
-```{r}
+                                                            ifelse(q110 > 29 & q110 <35, "30-34", "35 or more")))))))
+#Ageatmarriage group                                                               
 fp%>%
   group_by(ageatmarriagegroup) %>%
   count() %>%
   mutate (percent =n/nrow(fp) *100)
 ```
 
-```{r}
-#HTRP Group of respondents
 
-#Extract columns from fp
-fp$adolescent = as.numeric(fp$adolescent)
-fp$young = as.numeric(fp$young)
-fp$rural = as.numeric(fp$rural)
-fp$hilldalit = as.numeric(fp$hilldalit)
-fp$taraidalit = as.numeric(fp$taraidalit)
-fp$muslim = as.numeric(fp$muslim)
-fp$slum = as.numeric(fp$slum)
-fp$geoghtrp = as.numeric(fp$geoghtrp)
-fp$disabled = as.numeric(fp$disabled)
-
-#Select the columns
-htrpgrp=data.frame(fp$adolescent, fp$young,fp$rural, fp$hilldalit, fp$taraidalit,fp$muslim, fp$slum, fp$geoghtrp, fp$disabled)
-nrow(htrpgrp)
-
-#Get the rows having at least 1 response
-htrpgrp1 = subset(fp, fp$adolescent== 1 | fp$young == 1 | fp$rural ==1 | fp$hilldalit ==1 | fp$taraidalit == 1 | fp$muslim == 1 | fp$slum == 1 | fp$geoghtrp == 1 | fp$disabled == 1)
-
-#Add the sum of column (cases)
-c=colSums(htrpgrp)
-c
-#Add the total number of responses 
-s=sum(htrpgrp)
-s
-
-#NUmber of rows with at least one response
-n=nrow(htrpgrp1)
-n
-
-a=round(c/n*100,2) #Percent of Cases
-a #Percent of Cases
-b=round(c/s*100,2) # Percent of Responses
-b
-
-barplot(a) #Cases
-barplot(b) # Responses
-```
 
 ```{r}
 #Main job of respondent q112
@@ -286,13 +232,14 @@ fp$q112<- as.factor(fp$q112)
 typeof(fp$q112)
 levels(fp[,"q112"])
 
-fp$q112 <- factor(as.numeric(fp$q112), levels = c( '1', '2', '3', '4', '5', "6", "7", "8"), labels = c( "Housewife", "Agriculture", "Government service", "Private job", "Daily wage","Business", "Foreign employment", "Others"))
+fp$q112 <- factor(as.numeric(fp$q112), levels = c( '1', '2', '3', '4', '5', "6", "7", "8"), labels = c( "Housewife", "Agriculture", "Paid employment (Private job, Daily wage, Foreign employment)", "Paid employment (Private job, Daily wage, Foreign employment)", "Paid employment (Private job, Daily wage, Foreign employment)", "Paid employment (Private job, Daily wage, Foreign employment)","Paid employment (Private job, Daily wage, Foreign employment)", "Others"))
 
 
 fp%>%
   group_by(q112) %>%
   count() %>%
   mutate (percent =n/nrow(fp) *100)
+
 ```
 
 ```{r}
@@ -301,7 +248,7 @@ fp$q113<- as.factor(fp$q113)
 typeof(fp$q113)
 levels(fp[,"q113"])
 
-fp$q113 <- factor(as.numeric(fp$q113), levels = c( '1', '2', '3', '4', '5', "6", "7"), labels = c( "Agriculture", "Government service", "Private job", "Daily wage labourer","Business", "Foreign employment", "Others"))
+fp$q113 <- factor(as.numeric(fp$q113), levels = c( '1', '2', '3', '4', '5', "6", "7"), labels = c( "Agriculture", "Government service", "Private job", "Daily wage / labourer","Business", "Foreign employment", "Others"))
 
 
 fp%>%
@@ -311,14 +258,8 @@ fp%>%
 ```
 
 ```{r}
-#
-```
+# Respondent's Literacy and education  q114
 
-
-```{r}
-#Respondent's Literacy and education  q114
-fp$q114<- as.factor(fp$q114)
-typeof(fp$q114)
 levels(fp[,"q114"])
 
 fp$q114 <- factor(as.numeric(fp$q114), levels = c( '1', '2'), labels = c("Literate", "Illiterate"))
@@ -333,6 +274,26 @@ fp%>%
 
 fp$respedun <- as.numeric(fp$respedun)
 describe(fp$respedun)
+
+
+
+#Categorizing the education into five groups; 0 means no formal education and 20 means illiterate
+fp$respedun <-  replace_na(fp$respedun, 20)
+fp <- fp %>%
+  mutate(respedungrp = ifelse(respedun >0 & respedun <6, "Primary",
+                              ifelse(respedun > 5 & respedun <11, "Secondary",
+                                     ifelse(respedun >10 & respedun < 13, "+2 or equivalent",
+                                            ifelse(respedun >12 & respedun <20, "Bachelor or higher",
+                                                   ifelse(respedun == 20 | respedun == 0, "None", "")))))) 
+
+
+
+
+
+ggplot(fp, aes(respedungrp)) +
+  geom_bar()
+
+
 ```
 
 
@@ -352,8 +313,26 @@ fp%>%
 
 #Respondent's education q117
 
-fp$respedun <- as.numeric(fp$q117)
-describe(fp$respedun)
+fp$q117 <- as.numeric(fp$q117)
+describe(fp$q117)
+
+
+
+#Categorizing the education into five groups; 0 means no formal education and 20 means illiterate
+fp$q117 <-  replace_na(fp$q117, 20)
+fp <- fp %>%
+  mutate(husbedungrp = ifelse(q117 >0 & q117 <6, "Primary",
+                              ifelse(q117 > 5 & q117 <11, "Secondary",
+                                     ifelse(q117 >10 & q117 < 13, "+2 or equivalent",
+                                            ifelse(q117 >12 & q117 <20, "Bachelor or higher",
+                                                   ifelse(q117 == 20 | q117 == 0, "None", "")))))) 
+
+
+
+
+ggplot(fp, aes(husbedungrp)) +
+  geom_bar()
+
 ```
 
 
@@ -379,22 +358,31 @@ fp <- fp %>%
                                                                                            ifelse (q118 >39 & q118<45,"40-44",
                                                                                                    ifelse(q118>44 & q118<50, "45-49", "50+")))))))))
 
-fp$husagegroup
+
 
 fp%>%
   group_by(husagegroup) %>%
   count() %>%
   mutate (percent =n/nrow(fp) *100)
 ```
+
 ```{r}
 #Spousal age difference
+fp$q118 <- as.numeric(fp$q118)
+fp$q109 <- as.numeric(fp$q109)
+
 fp <- fp%>%
   mutate(spousalagediff = q118-q109)
 
-fp$spousalagediff < as.numeric(fp$spousalagediff)
-
-describe(fp$spousalagediff)
 hist(fp$spousalagediff)
+
+fp <- fp%>%
+  mutate (spouseagediffgrp = ifelse(spousalagediff < 0, "Woman older",
+                                    ifelse(spousalagediff >= 0 & spousalagediff <5, "Man 0-4 years older",
+                                           ifelse(spousalagediff >4 & spousalagediff <10, "Man 5-9 years older",
+                                                  ifelse(spousalagediff > 9, "Man 10+ years older", NA)))))
+
+
 
 ```
 
@@ -414,6 +402,21 @@ fp%>%
   mutate (percent =n/nrow(fp) *100)
 
 ```
+
+
+fp$distance <- as.numeric(as.character(fp$distance))
+
+
+fp <- fp %>%
+  mutate(distancegrp = ifelse( distance > 30 , "More than 30 minutes", "Less than or equals to 30 minutes"))
+describe(fp$distancegrp)
+
+temptable <- fp %>%
+  filter(pregnancystat != 1)
+distable <- arsenal::tableby(  factor(currentuse) ~ factor(distancegrp),  data = temptable, test = TRUE)
+ summary(distabl)
+
+
 
 ```{r}
 #Familysize q121
@@ -441,48 +444,13 @@ fp%>%
 
 
 
-
-
-
-
-
-
-```{r}
-library(table1)
-
-label(fp$agegroup) <- "Age"
-label(fp$respcastecode) <- "Caste"
-label(fp$q107) <- "Religion"
-label(fp$district) <- "district"
-label(fp$province) <- "Province"
-label(fp$q122) <- "type of family"
-
-table1 :: table1(~ agegroup + respcastecode + q107 + q105 + province +  q122 | q114, caption = "Summay of Demographic Statistics", data = fp)
-
-```
-
-
-
-
-
-
-
-
-
-```{r}
-#Distance from HF 
-fp$distance <- as.numeric(fp$distance)
-
-describe(fp$distance)
-hist(fp$distance)
-```
 ```{r}
 #Currentlylivingwith spouse 120a
 fp$q120a<- as.factor(fp$q120a)
 typeof(fp$q120a)
 levels(fp[,"q120a"])
 
-fp$q120a <- factor(as.numeric(fp$q120a), levels = c( '1', '2'), labels = c("Yes", "No"))
+fp$q120a <- factor(as.numeric(fp$q120a), levels = c( '1', '2'), labels = c("Living with respondent", "Staying elsewhere"))
 
 
 fp%>%
@@ -494,7 +462,7 @@ fp%>%
 #Duratrion since marriage
 fp <- fp %>%
   mutate(marrieduration = q109-q110)
-fp$marrieduration
+
 # How long with spouse 120b (requires cleaning ; Current age < Age at marriage)
 
 
@@ -516,6 +484,77 @@ fp %>%
   mutate (percent =n/nrow(fp) *100)
 
 ```
+
+
+```{r}
+
+#HTRP Group of respondents
+
+#Current source of contraceptive information
+
+#casescount
+
+nrow(fp)
+inclusion <- fp %>%
+  select(adolescent:disabled) %>%
+ filter(adolescent == 1 | young == 1 | rural ==1 | hilldalit ==1 | taraidalit == 1 | muslim == 1 | slum == 1 | geoghtrp == 1 | disabled == 1)
+nrow(inclusion)
+
+#Casesplot
+inclusioncase <- inclusion %>%
+  pivot_longer(c(adolescent:disabled), names_to = "group", values_to = "cases") %>% 
+    group_by(group) %>%
+    count(cases) %>%
+    filter(cases == 1) %>%
+    mutate(percentage = n/nrow(inclusion)*100) %>%
+    arrange(desc(percentage)) %>%
+  print()
+
+inclusionplot<- ggplot(inclusioncase, aes(x = fct_reorder(group, percentage), y= percentage/100, label = round(percentage,2) , fill = group)) +
+    geom_col() + 
+  coord_flip() +
+  geom_text(size=5, vjust = 0.5, hjust = -0.1, colour = "black") +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1))+
+      theme_minimal(base_size = 16) +
+  scale_fill_npg() +
+   labs(x="", 
+       y= "", 
+       title = "Percentage distribution of Hard to Reach groups") +
+  scale_x_discrete(labels=c("geoghtrp" = "Geographically hard to reach", "young" = "Young woman (20-24 years)",
+                              "rural" = "Women residing in rural area ", "hilldalit" = "Hill Dalit", "muslim" = "Muslim", "taraidalit" = "Tarai Dalit", "slum" = "Women from urban slum", "adolescent" = "Adolescent", "disabled" = "Disabled women")) +
+   theme(plot.title = element_text(hjust = 0.5, size = 22, face="bold", colour = "black"),  axis.text=element_text(size = 16, colour = "black")) +
+   theme(legend.position = "none")
+ggsave("Inclusion.png", inclusionplot, height = 10, width = 15, dpi = 1200) 
+
+
+  #Responsecount
+inclusion <- inclusion  %>% mutate_if(is.character, as.numeric)
+sum(inclusion)
+ 
+#Responsesplot
+inclusionresp <- inclusion %>%
+  pivot_longer(c(adolescent:disabled), names_to = "group", values_to = "cases") %>% 
+    group_by(group) %>%
+    count(cases) %>%
+    filter(cases == 1) %>%
+    mutate(percentage = n/sum(inclusion)*100) %>%
+    arrange(desc(percentage))%>%
+  print()
+  
+ ggplot(inclusionresp, aes(x = fct_reorder(group, percentage, .desc = F), y= percentage/100, label = round(percentage,2), fill = group)) +
+    geom_col() + 
+   coord_flip() +
+   scale_y_continuous(labels = scales::percent_format(accuracy = 1))+
+      theme_minimal() +
+   geom_text(size=2.5, vjust = 0.5, hjust = -0.1) +
+   labs(x="", 
+       y= " Percentage of responses", 
+       title = "Nature of Respondents") +
+   theme(plot.title = element_text(hjust = 0.5)) +
+   theme(legend.position = "none")
+```
+
+
 ```{r}
 #IWI index
 
@@ -541,68 +580,70 @@ fp <- fp %>%
   mutate(cheaputen1 =  ifelse(tv == 1 | fridge == 1 | phone == 1 | twowheel == 1| threewheel == 1| exputen == 1 | toilet==3 |floor == 3 | cheaputen ==1, 1, 2))
 describe(fp$cheaputen1)
 
+
+
 #Check for "Dont know)
-iwi <- fp%>%
+fp <- fp%>%
   filter(tv != 3 & fridge != 3 & phone != 3 & twowheel != 3 & threewheel != 3 & cheaputen1 != 3 & exputen != 3 & electricity != 3 & water != 4 &  toilet != 4 & floor != 4 & sroom != 4)
 
-nonmissing = nrow(iwi) #Nonmissing rows
+nonmissing = nrow(fp) #Nonmissing rows
 nonmissing
-missing = nrow(fp) - nrow(iwi) #Missing rows' number
+missing = nrow(fp) - nrow (fp) #Missing rows' number
 missing
 
 #Syntax to recode 1,2 and 3s and reassign weights
-iwi <- iwi %>%
+fp <- fp %>%
   mutate(tv1 = ifelse(tv ==1, 8.612657, 0 ))
 
-iwi <- iwi %>%
+fp <- fp %>%
   mutate(fridge1 = ifelse(fridge ==1, 8.429076, 0 ))
 
-iwi <- iwi %>%
+fp <- fp %>%
   mutate(phone1 = ifelse(phone ==1, 7.127699, 0 ))
 
-iwi <- iwi %>%
+fp <- fp %>%
   mutate(twowheel1 = ifelse(twowheel ==1, 1.84686, 0 ))
 
-iwi <- iwi %>%
+fp <- fp %>%
   mutate(threewheel1 = ifelse(threewheel ==1, 4.651382, 0))
 
-iwi <- iwi %>%
-  mutate(cheaputen2 = ifelse(cheaputen1 ==1, 4.118394, 0))
+fp <- fp %>%
+  mutate(cheaputen2 = ifelse(cheaputen1 == 1, 4.118394, 0))
 
-iwi <- iwi %>%
+fp <- fp %>%
   mutate(exputen1 = ifelse(exputen ==1, 6.507283, 0))
 
-iwi <- iwi %>%
+fp <- fp %>%
   mutate(electricity1 = ifelse(electricity ==1, 8.056664, 0))
 
-iwi <- iwi %>%
+fp <- fp %>%
   mutate(water1 = ifelse(water ==1,-6.306477,
                          ifelse(water == 2, -2.302023, 7.952443)))
 
-iwi <- iwi %>%
+fp <- fp %>%
   mutate(toilet1 = ifelse(toilet ==1,-7.439841,
                          ifelse(water == 2, -1.090393, 8.140637)))
 
-iwi <- iwi %>%
+fp <- fp %>%
   mutate(floor1 = ifelse(floor ==1,-7.558471,
                          ifelse(water == 2, 1.227531, 6.107428)))
 
 
-iwi <- iwi %>%
+fp <- fp %>%
   mutate(sroom1 = ifelse(sroom ==1,-3.699681,
                          ifelse(water == 2, 0.38405, 3.445009)))
 
 
 # Add a column with 25.00447 as constant
-iwi$iwiconst <- 25.00447
+fp$iwiconst <- 25.00447
   
 
-#Create a new variable iwiscore
-iwi <- iwi %>%
+#Create a new variable fpscore
+fp <- fp %>%
   mutate(iwiscore = tv1 + fridge1 + phone1 + twowheel1 + threewheel1 + cheaputen2 + exputen1 +electricity1 + water1 + toilet1 + floor1 + sroom1 + iwiconst)
 
-describe(iwi$iwiscore)
-ggplot(iwi)+
+describe(fp$iwiscore)
+ggplot(fp)+
   aes(iwiscore)+
   geom_histogram(binwidth = 5)
 
@@ -610,21 +651,985 @@ ggplot(iwi)+
 #Creating a wealth quintile
 library(Hmisc)
 
-iwi$quintile <- cut2(iwi$iwiscore, g =5)
+fp$quintile <- cut2(fp$iwiscore, g =5)
 
 #Wealth quinitile description
-iwi %>%
+fp %>%
   group_by(quintile) %>%
   count() %>%
-  mutate(percent = n/nrow(iwi)*100)
+  mutate(percent = n/nrow(fp)*100)
 
 
 #Urban/Rural wealth quintile bar visualization
-ggplot(iwi) +
-  aes(typeoflocal1) +
-  geom_bar(aes(fill = quintile)) +
-  xlab("Residence") +
-  ylab("Percentage") +
-  ggtitle("Wealth distribution by Residence")
+wealthplot <- ggplot(fp) +
+  geom_bar(aes(typeoflocal1, fill = quintile),  position = "fill") +
+  theme_minimal(base_size = 12) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  labs(fill = "Wealth quintile") +
+  xlab("") +
+  ylab("") +
+  ggtitle("Wealth distribution by Residence") +
+    theme(plot.title = element_text(hjust = 0.5, size = 12, face="bold", colour = "black"),  axis.text=element_text(size = 12, colour = "black"))  +
+ scale_fill_discrete() 
+ggsave("Wealthplot.png", wealthplot, dpi = 1200, height = 5, width = 5) 
+  
+```
+
+
+
+
+```{r}
+
+# Living children
+fp$q303 <- as.numeric(fp$q303)
+fp$q303 <-  replace_na(fp$q303, 0)
+fp$q304 <- as.numeric(fp$q304)
+fp$q304 <-  replace_na(fp$q304, 0)
+fp$q306 <- as.numeric(fp$q306)
+fp$q306 <-  replace_na(fp$q306, 0)
+fp$q307 <- as.numeric(fp$q307)
+fp$q307 <-  replace_na(fp$q307, 0)
+
+
+fp <- fp %>%
+  mutate(livingchild = q303+q304+q306+q307)
+
+describe(fp$livingchild)
+
+fp$livingchild <-  replace_na(fp$livingchild, 0)
+describe(fp$livingchild)
+
+fp <-  fp %>%
+  mutate(livingchildgrp = ifelse (livingchild == 0, "0",
+                                  ifelse(livingchild == 1, "1",
+                                         ifelse(livingchild == 2, "2",
+                                                ifelse(livingchild == 3, "3", "4+")))))
+
+
 
 ```
+
+
+
+
+```{r, results= "asis"}
+#Table of demographic features
+
+library(table1)
+label(fp$province) <- "Province"
+label(fp$respcastecode) <- "Caste/Ethnicity"
+label(fp$q107) <- "Religion"
+label(fp$agegroup) <- "Age"
+label(fp$respedungrp) <- "Respondent's education"
+label(fp$q112) <- "Respondent's Occupation"
+label(fp$quintile) <- "Wealth"
+label(fp$ageatmarriagegroup) <- "Age at marriage"
+label(fp$q119) <= "Polygamous relation"
+label(fp$livingchildgrp) <- "Number of living children"
+label(fp$husbedungrp) <- "Husband's education"
+label(fp$q113) <- "Husband's occupation"
+label(fp$q120a) <- "Husband's residence"
+label(fp$spouseagediffgrp) <- "Spousal age difference"
+label(fp$q122) <- "Family type"
+
+label (fp$q109) <- "Age of respondent"
+label (fp$q110) <- "Marriage age"
+
+
+
+
+#table1::table1(~ district  | typeoflocal1, data = fp)
+
+
+#table1::table1(~ province + respcastecode + q107 + agegroup + respedungrp +  q112 + quintile + ageatmarriagegroup + q119 + livingchildgrp + husbedungrp + q113 + q120a + spouseagediffgrp + q122+  q109 +q110  + distance | typeoflocal1, caption = "Summary of Demographic Statistics", data = fp)
+
+tablone <- arsenal::tableby(  factor(typeoflocal1) ~ factor(province) + factor(respcastecode) + factor(q107) + factor(agegroup) + factor(respedungrp) + factor(q112) + factor(quintile) + factor(ageatmarriagegroup) + factor(q119) + factor(livingchildgrp) + factor(husbedungrp) + factor(q113) + factor(q120a) + factor(spouseagediffgrp) + factor(q122) + factor(q122) + q109 + q110 ,  data = fp, cat.stats = "countrowpct", test = FALSE)
+
+summary(tablone)
+
+```
+
+```{r}
+#Fertility preferences
+#Rename variables as : q610: wantnextpreg , q611:wantnextnonpreg , q612: timenextpreg, q612a: monthnextpreg, q612b: yearnextpreg
+
+fp$yearnextpreg <- as.numeric(fp$yearnextpreg)
+
+
+
+#Do you want next child, NA means sterilized.
+fp <- fp %>%
+  mutate(fertpref = ifelse(wantnextpreg == 1 | wantnextnonpreg == 1, "Have another",
+                            ifelse(wantnextpreg == 2 | wantnextnonpreg == 2, "No more",
+                                   ifelse(wantnextpreg == 3 | wantnextnonpreg == 4, "Undecided",
+                                          ifelse(wantnextnonpreg == 3, "Declared infecund", 
+                                                 ifelse(sterilizedcurrent == 3, " Sterilized", "Unknown")))))) 
+
+group_by(fp, fertpref) %>%
+  count()
+
+describe(fp$wantnextnonpreg)
+
+#When do you want next child? 
+fp <- fp%>%
+  mutate(timenextchild =  ifelse(timenextpreg == 6, "Have another, undecided when",
+                                 ifelse(wantnextpreg == 3 | wantnextnonpreg == 4, "Undecided",
+                                        ifelse(wantnextnonpreg == 3 | timenextpreg == 4, "Declared infecund",
+                                               ifelse(wantnextpreg == 2 | wantnextnonpreg == 2, "Wants no more",
+                                                      ifelse(timenextpreg == 1 |  yearnextpreg < 2 | timenextpreg == 3 , "Wants within 2 years",
+                                                             ifelse(yearnextpreg >=2, "Wants after 2+ years", "Sterilized")))))))
+
+
+group_by(fp, timenextchild) %>%
+  count()
+
+#Tabulate fertility preferences
+
+label(fp$fertpref) <- "Fertility preferences"
+label(fp$timenextchild) <- "Timing preference"
+
+
+table1(~ fertpref+ timenextchild | typeoflocal1, caption = "Fertility preferences of respondents", data = fp)
+table1(~ fertpref+ timenextchild , caption = "Fertility preferences of respondents", data = fp)
+
+```
+
+```{r, results= "asis"}
+#Autonomy and decisionmaking
+
+#Rename q501: healthdecision, q502: purchasedecision, q503:visitdecision, q632: contrausedecision, q633: contranonusedecision, 
+
+fp$healthdecision <- factor(as.numeric(fp$healthdecision), levels = c( '1', '2', '3', '4'), labels = c("Respondent", "Husband", "Respondent and husband jointly", "Someone else"))
+fp$purchasedecision <- factor(as.numeric(fp$purchasedecision), levels = c( '1', '2', '3', '4'), labels = c("Respondent", "Husband", "Respondent and husband jointly", "Someone else"))
+fp$visitdecision <- factor(as.numeric(fp$visitdecision), levels = c( '1', '2', '3', '4'), labels = c("Respondent", "Husband", "Respondent and husband jointly", "Someone else"))
+
+
+fp <- fp %>%
+  mutate(contradecision = ifelse(contrausedecision == 1, "Respondent",
+                                 ifelse(contranonusedecision == 1, "Respondent",
+                                        ifelse(contrausedecision == 2, "Husband",
+                                        ifelse(contranonusedecision == 2, "Husband",
+                                        ifelse(contrausedecision == 3, "Respondent and husband jointly",
+                                               ifelse(contranonusedecision == 3,"Respondent and husband jointly",
+                                                      ifelse(contrausedecision == 4, "Someone else",
+                                                             ifelse(contranonusedecision == 4, "Someone else", "Pregnant")))))))))
+
+
+fp <- fp %>%
+  mutate(autoassoc = ifelse(healthdecision == "Respondent" | healthdecision == "Respondent and husband jointly" & purchasedecision == "Respondent" | purchasedecision == "Respondent and husband jointly" & visitdecision == "Respondent" | visitdecision == "Respondent and husband jointly" , "Makes self- decision or jointly with husband", "Husband or someone else makes decision"))
+describe(fp$autoassoc)
+
+label(fp$healthdecision) <- "Decision about health care"
+label(fp$purchasedecision) <- "Decision about major household purchases"
+label(fp$visitdecision) <- "Decision about visits to family or relatives"
+label(fp$contradecision) <- "Decision regarding contraceptive use"
+
+
+
+table1::table1(~ healthdecision + purchasedecision + visitdecision + contradecision, caption = "Autonomy and decisonmaking", data = fp )
+
+#table1::table1( ~province + typeoflocal1 +  agegroup + respedungrp +  quintile +   livingchildgrp  | contradecision , caption = "Contraceptive use decision-making", data = fp)
+
+tabldecision <- arsenal::tableby(  factor(contradecision) ~ factor(province) + factor(typeoflocal1) + factor(agegroup) + factor(respedungrp) + factor(quintile) + factor(livingchildgrp),  data = fp, cat.stats = "countrowpct", test = FALSE)
+
+summary(tabldecision)
+
+```
+
+```{r}
+#Current source of contraceptive information
+
+#casescount
+infocase0 <- fp %>%
+  select(radio:othersourceinfo) %>%
+ filter(radio == 1 | television == 1 | newspaper == 1|	sms == 1|	poster == 1 |	internet== 1 |	drama == 1| 	mg == 1 |	teacher == 1| 	fchv == 1 |	fammem ==1 |	othersourceinfo == 1)
+nrow(infocase0)
+
+#Casesplot
+infocase <- infocase0 %>%
+  pivot_longer(c(radio:othersourceinfo), names_to = "sourceofinfo", values_to = "cases") %>% 
+    group_by(sourceofinfo) %>%
+    count(cases) %>%
+    filter(cases == 1) %>%
+    mutate(percentage = n/nrow(infocase0)*100) %>%
+    arrange(percentage) %>%
+  print()
+
+
+sourceinfo <- ggplot(infocase, aes(x = fct_reorder(sourceofinfo, percentage), y= percentage/100, label = round(percentage,0) , fill = sourceofinfo)) +
+    geom_col() + 
+  geom_text(size=7, vjust = 0.5, hjust = -0.1, color= "black") +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1))+
+  theme_minimal() +
+  coord_flip() +
+  labs(x="", 
+       y= "", 
+       title = "Percentage distribution of current source of family planning information") +
+  scale_x_discrete(labels=c("fchv" = "FCHV", "radio" = "Radio","television" = "Television", "fammem" = "Family member", "mg" = "Mothers' Group", "sms" = "Text/voice message", "internet" = "Internet", "poster" = "Poster /pamphlet", "teacher" = "Teacher", "drama" = "Street drama", "newspaper" = "Newspaper", "othersourceinfo" = "Other")) +
+   theme(plot.title = element_text(size = 25, hjust = 0.5, face = "bold"),  axis.text=element_text(size = 20, colour = "black")) +
+   theme(legend.position = "none")
+
+ggsave("Current source of information.png", sourceinfo, width = 15, height = 12, dpi = 1200)
+   
+
+  #Responsecount
+infocase0 <- infocase0  %>% mutate_if(is.character, as.numeric)
+sum(infocase0)
+ 
+#Responsesplot
+inforesp <- infocase0 %>%
+  pivot_longer(c(radio:othersourceinfo), names_to = "sourceofinfo", values_to = "cases") %>% 
+    group_by(sourceofinfo) %>%
+    count(cases) %>%
+    filter(cases == 1) %>%
+    mutate(percentage = n/sum(infocase0)*100) %>%
+    arrange(desc(percentage))%>%
+  print()
+  
+ ggplot(inforesp, aes(x = fct_reorder(sourceofinfo, percentage, .desc = F), y= percentage, label = round(percentage,2), fill = sourceofinfo)) +
+    geom_col() + 
+   coord_flip() +
+   scale_y_continuous(labels = scales::percent_format(accuracy = 1))+
+      theme_minimal() +
+   geom_text(size=3, vjust = 0.5, hjust = -0.5) +
+   labs(x="", 
+       y= " Percentage of responses", 
+       title = "Current source of family planning information") +
+    
+   theme(plot.title = element_text(hjust = 0.5)) +
+   theme(legend.position = "none")
+
+```
+
+
+```{r}
+#Preferred source of Family planning information
+
+#Rename q622 to preferredcontrainfo
+fp$preferredcontrainfo <- factor(as.numeric(fp$preferredcontrainfo), levels = c( '1', '2', '3', '4',"6", "7", "8", "9", "10", "11", "12"), labels = c("Radio", "Television", "Newspaper", "Text/Voice messages",  "Internet", "Street dramas", "Mother's Groups", "Teachers", "FCHVs", "Family members/ Relatives", "Others"))
+
+label(fp$preferredcontrainfo) <- "Preferred source of contraceptive information"
+
+table1(~preferredcontrainfo, caption = "Preferred source of contraceptive information", data = fp)
+```
+```{r, results= "asis"}
+#Current soure of contraceptive information by BG characteristics
+
+#radio == 1 | television == 1 | newspaper == 1|	sms == 1|	poster == 1 |	internet== 1 |	drama == 1| 	mg == 1 |	teacher == 1| 	fchv == 1 |	fammem ==1 |	othersourceinfo == 
+tablradio <- arsenal::tableby(  factor(radio) ~ factor(province) + factor(typeoflocal1) +  factor(agegroup) + factor(respedungrp) + factor(quintile), data = fp, cat.stats = "countrowpct", test = FALSE)
+summary(tablradio)
+
+tabltv <- arsenal::tableby(  factor(television) ~ factor(province) + factor(typeoflocal1) +  factor(agegroup) + factor(respedungrp) + factor(quintile), data = fp, cat.stats = "countrowpct", test = FALSE)
+summary(tabltv)
+
+tablnewspaper <- arsenal::tableby(  factor(newspaper) ~ factor(province) + factor(typeoflocal1) +  factor(agegroup) + factor(respedungrp) + factor(quintile), data = fp, cat.stats = "countrowpct", test = FALSE)
+summary(tablnewspaper)
+
+tablsms <- arsenal::tableby(  factor(sms) ~ factor(province) + factor(typeoflocal1) +  factor(agegroup) + factor(respedungrp) + factor(quintile), data = fp, cat.stats = "countrowpct", test = FALSE)
+summary(tablsms)
+
+tablinternet <- arsenal::tableby(  factor(internet) ~ factor(province) + factor(typeoflocal1) +  factor(agegroup) + factor(respedungrp) + factor(quintile), data = fp, cat.stats = "countrowpct", test = FALSE)
+summary(tablinternet)
+
+tabldrama <- arsenal::tableby(  factor(drama) ~ factor(province) + factor(typeoflocal1) +  factor(agegroup) + factor(respedungrp) + factor(quintile), data = fp, cat.stats = "countrowpct", test = FALSE)
+summary(tabldrama)
+
+tablmg <- arsenal::tableby(factor(mg) ~ factor(province) + factor(typeoflocal1) +  factor(agegroup) + factor(respedungrp) + factor(quintile), data = fp, cat.stats = "countrowpct", test = FALSE)
+summary(tablmg)
+
+tablteacher <- arsenal::tableby(factor(teacher) ~ factor(province) + factor(typeoflocal1) +  factor(agegroup) + factor(respedungrp) + factor(quintile), data = fp, cat.stats = "countrowpct", test = FALSE)
+summary(tablteacher)
+
+
+tablfchv <- arsenal::tableby(factor(fchv) ~ factor(province) + factor(typeoflocal1) +  factor(agegroup) + factor(respedungrp) + factor(quintile), data = fp, cat.stats = "countrowpct", test = FALSE)
+summary(tablfchv)
+
+tablfammem <- arsenal::tableby(factor(fammem) ~ factor(province) + factor(typeoflocal1) +  factor(agegroup) + factor(respedungrp) + factor(quintile), data = fp, cat.stats = "countrowpct", test = FALSE)
+summary(tablfammem)
+
+tablothersourceinfo <- arsenal::tableby(factor(othersourceinfo) ~ factor(province) + factor(typeoflocal1) +  factor(agegroup) + factor(respedungrp) + factor(quintile), data = fp, cat.stats = "countrowpct", test = FALSE)
+summary(tablothersourceinfo)
+
+
+#table1::table1(~province +  typeoflocal1 + agegroup + respedungrp + quintile | radio, caption = "radio", data = fp)
+#table1::table1(~province +  typeoflocal1 + agegroup + respedungrp + quintile | television, caption = "tv", data = fp)
+#table1::table1(~province +  typeoflocal1 + agegroup + respedungrp + quintile | newspaper, caption = "newspaper", data = fp)
+#table1::table1(~province +  typeoflocal1 + agegroup + respedungrp + quintile | sms, caption = "sms", data = fp)
+#table1::table1(~province +  typeoflocal1 + agegroup + respedungrp + quintile | poster, caption = "poster", data = fp)
+#table1::table1(~province +  typeoflocal1 + agegroup + respedungrp + quintile | internet, caption = "internet", data = fp)
+#table1::table1(~province +  typeoflocal1 + agegroup + respedungrp + quintile | drama, caption = "drama", data = fp)
+#table1::table1(~province +  typeoflocal1 + agegroup + respedungrp + quintile | mg, caption = "Mothers' Group", data = fp)
+#table1::table1(~province +  typeoflocal1 + agegroup + respedungrp + quintile | teacher, caption = "Teacher", data = fp)
+#table1::table1(~province +  typeoflocal1 + agegroup + respedungrp + quintile | fchv, caption = "FCHV", data = fp)
+#table1::table1(~province +  typeoflocal1 + agegroup + respedungrp + quintile | fammem, caption = "Family member", data = fp)
+#table1::table1(~province +  typeoflocal1 + agegroup + respedungrp + quintile | othersourceinfo, caption = "Other", data = fp)
+
+```
+
+```{r}
+#Resons for non-use of FP methods
+#Needs recoding for other reasons
+#To be done in consultation at last
+```
+
+```{r}
+#Fp method knowledge
+#Rename variables q401: heardoffp, Then consequtive variables as: hearfemster, hearmalster,heariucd, heardepo,  hearimplant, hearpills, hearcondom, hearemecon, hearlam, hearsdm, hearcalender, hearwithdrawl, hearothermodern, hearothertrad. 
+#Traditional methods are calender, withdrawl & other traditional methods. LAM, SDM are considered modern.
+
+fp$hearmalester <- as.numeric(as.character(fp$hearmalster))
+fp$hearfemster <- as.numeric(as.character(fp$hearfemster))
+fp$heariucd <- as.numeric(fp$heariucd)
+fp$heardepo <- as.numeric(fp$heardepo)
+fp$hearimplant <- as.numeric(fp$hearimplant)
+fp$hearpills <- as.numeric(fp$hearpills)
+fp$hearcondom <- as.numeric(fp$hearcondom)
+fp$hearemecon <- as.numeric(fp$hearemecon)
+fp$hearlam <- as.numeric(fp$hearlam)
+fp$hearsdm <- as.numeric(fp$hearsdm)
+fp$hearothermodern <- as.numeric(fp$hearothermodern)
+fp$hearcalender <- as.numeric(fp$hearcalender)
+fp$hearwithdrawl <- as.numeric(fp$hearwithdrawl)
+fp$hearothertrad <- as.numeric(fp$hearothertrad)
+
+
+
+fp <- fp %>%
+  mutate(hearscore = hearfemster + hearothertrad +hearmalester +  hearimplant +hearimplant + heardepo + hearpills  + hearcondom + hearemecon + hearlam  + hearsdm + hearcalender+ hearwithdrawl + hearothermodern + hearothertrad)
+describe(fp$hearscore )
+
+fp <- fp %>%
+  mutate(hearscorecat = ifelse( hearscore >=3, "Knows at least three methods", "Knows less than three methods"))
+describe(fp$hearscorecat)
+
+
+fp <- fp %>%
+  mutate(knowfp = ifelse(hearfemster == 1 | hearmalster == 1 | heariucd == 1 | heardepo == 1 | hearimplant == 1 | hearpills == 1 | hearcondom == 1 | hearemecon == 1 | hearlam == 1 | hearsdm == 1 | hearothermodern == 1, "Knows a modern method",
+                         ifelse(hearfemster != 1 | hearmalster != 1 | heariucd != 1 | heardepo !=1 | hearimplant != 1 | hearpills != 1 | hearcondom != 1 | hearemecon != 1 | hearlam != 1 | hearsdm != 1 | hearothermodern != 1 & hearcalender == 1 | hearwithdrawl == 1 | hearothertrad == 1, "Knows traditional method/s only",
+                                ifelse(hearfemster:hearothertrad == 0, "Knows no method", NA))))
+
+describe(fp$knowfp)  
+```
+
+
+```{r}
+# Use of FP method; NA indicates pregnant women
+describe(fp$pregnancystat)
+describe(fp$currentuse)
+
+fp <- fp %>%
+  mutate(usefp = ifelse(currentuse == 2, "No method",
+                        ifelse(usefemster == 1 | usemalester == 1 | useiucd == 1 | usedepo == 1 | useimplant == 1 | usepills == 1| usecondom == 1| useemecon == 1| uselam == 1| usesdm == 1| useothermodern == 1, "Modern method",
+                               ifelse(usefemster == 0 | usemalester == 0 | useiucd == 0 | usedepo == 0 | useimplant == 0 | usepills == 0| usecondom == 0| useemecon == 0| uselam == 0| usesdm == 0| useothermodern == 0 & usecalender == 1 | usewithdrawl == 1 | useothertrad == 1, "Traditional method", NA))))
+
+describe(fp$usefp)
+```
+
+```{r, results="asis"}
+#Primary family plannig method among users
+
+fp <- fp %>%
+  mutate(primaryfp = ifelse(usefemster == 1, "Female sterilization",
+                            ifelse(usefemster == 0 & usemalester == 1,"Male sterilization",
+                                   ifelse(usefemster == 0 & usemalester == 0 & useiucd == 1, "IUCD",
+                                          ifelse(usefemster == 0 & usemalester == 0 & useiucd == 0 & usedepo == 1, "Depo",
+                                                 ifelse(usefemster == 0 & usemalester == 0 & useiucd == 0 & usedepo == 0 & useimplant == 1, "Implant",
+                                                        ifelse(usefemster == 0 & usemalester == 0 & useiucd == 0 & usedepo == 0 & useimplant == 0 & usepills == 1, "Pills",
+                                                               ifelse(usefemster == 0 & usemalester == 0 & useiucd == 0 & usedepo == 0 & useimplant == 0 & usepills == 0 & usecondom == 1, "Condom",
+                                                                      ifelse(usefemster == 0 & usemalester == 0 & useiucd == 0 & usedepo == 0 & useimplant == 0 & usepills == 0 & usecondom == 0 & useemecon == 1, "Emergency contraception",
+                                                                             ifelse(usefemster == 0 & usemalester == 0 & useiucd == 0 & usedepo == 0 & useimplant == 0 & usepills == 0 & usecondom == 0 & useemecon == 0 & uselam == 1, "LAM",
+                                                                                    ifelse(usefemster == 0 & usemalester == 0 & useiucd == 0 & usedepo == 0 & useimplant == 0 & usepills == 0 & usecondom == 0 & useemecon == 0 & uselam == 0 & usesdm == 1, "SDM",
+                                                                                           ifelse(usefemster == 0 & usemalester == 0 & useiucd == 0 & usedepo == 0 & useimplant == 0 & usepills == 0 & usecondom == 0 & useemecon == 0 & uselam == 0 & usesdm == 0 & usecalender ==1, "Calender method",
+                                                                                                  ifelse(usefemster == 0 & usemalester == 0 & useiucd == 0 & usedepo == 0 & useimplant == 0 & usepills == 0 & usecondom == 0 & useemecon == 0 & uselam == 0 & usesdm == 0 & usecalender ==0 & usewithdrawl == 1, "Withdrawl method",
+                                                                                                         ifelse(usefemster == 0 & usemalester == 0 & useiucd == 0 & usedepo == 0 & useimplant == 0 & usepills == 0 & usecondom == 0 & useemecon == 0 & uselam == 0 & usesdm == 0 & usecalender ==0 & usewithdrawl == 0 & useothermodern == 1, "Other modern method",
+                                                                                                                ifelse(usefemster == 0 & usemalester == 0 & useiucd == 0 & usedepo == 0 & useimplant == 0 & usepills == 0 & usecondom == 0 & useemecon == 0 & uselam == 0 & usesdm == 0 & usecalender ==0 & usewithdrawl == 0 & useothermodern == 0 & useothertrad == 1, "Other traditional method", "Not currently using")))))))))))))))
+
+
+fp <- fp %>%
+  mutate(usingcategory = ifelse(primaryfp == "Female sterilization" | primaryfp == "Male sterilization" | primaryfp == "IUCD" | primaryfp == "Depo" | primaryfp == "Implant" | primaryfp == "Pills" | primaryfp == "Condom" | primaryfp == "Emergency contraception" | primaryfp == "LAM" | primaryfp == "SDM", "Any modern method",
+                                ifelse(primaryfp == "Withdrawl method" | primaryfp == "Calender method" | primaryfp == "Other traditional method", "Any traditional method", "Not currently using")))
+
+
+tablusingcategory <- arsenal::tableby(  factor(usingcategory) ~ factor(province) + factor(typeoflocal1) + factor(respcastecode) + factor (q107) + factor(agegroup) + factor(respedungrp) + factor(quintile) + factor(livingchildgrp) + factor (q120a) + factor (spouseagediffgrp),  data = fp, cat.stats = "countrowpct", test = FALSE)
+summary(tablusingcategory)
+
+
+tablprimary <- arsenal::tableby(  factor(primaryfp) ~ factor(province) + factor(typeoflocal1) + factor(respcastecode) + factor (q107) + factor(agegroup) + factor(respedungrp) + factor(quintile) + factor(livingchildgrp) + factor (q120a) + factor (spouseagediffgrp),  data = fp, cat.stats = "countrowpct", test = FALSE)
+summary(tablprimary)
+
+
+
+tablcurrentuse <- arsenal::tableby(  factor(primaryfp) ~ factor(province) + factor(typeoflocal1) + factor(respcastecode) + factor (q107) + factor(agegroup) + factor(respedungrp) + factor(quintile) + factor(livingchildgrp) + factor (q120a) + factor (spouseagediffgrp),  data = fp, cat.stats = "countrowpct", test = FALSE)
+summary(tablcurrentuse)
+
+#table1::table1(~ province +  typeoflocal1 + respcastecode + q107 + agegroup + respedungrp + quintile +  livingchildgrp +  q120a + spouseagediffgrp   | primaryfp, caption = "Current use of contraception according to background characteristics", data = fp)
+
+
+
+#table1::table1(~ province +  typeoflocal1 + respcastecode + q107 + agegroup + respedungrp + quintile +  livingchildgrp +  q120a + spouseagediffgrp  | usefp, caption = "Current use of contraception according to background characteristics", data = fp)
+```
+```{r, results= "asis"}
+
+
+tablknowfp <- arsenal::tableby(  factor(typeoflocal1) ~ factor(knowfp) + factor(hearscorecat) + factor(usefp) + factor (primaryfp),  data = fp, cat.stats = "countrowpct", test = FALSE)
+summary(tablknowfp)
+
+
+#tableknowfp(~ knowfp + hearscorecat + usefp + primaryfp | typeoflocal1, data = fp)
+```
+```{r}
+#Reasons for non-use
+
+fp$reasonnonuse <- factor(as.numeric(fp$reasonnonuse), levels = c( 1:23 ), labels = c("Not having sex", "Having infrequent sex", "Menopause/Hysterectomy", "Don’t get pregnant", "Not menstruated since last birth", "Breastfeeding",  "Upto god/fatalistic", "Respondent opposed", "Husband opposed",  "Others opposed", "Religious prohibition", "knows no method",  "Knows no source", "Side effect/health concern",  "Lack of access/too far",  "Costs too much",  "Preferred method not available", "No method available",  "Inconvenient to use", "Interference with the body's normal functioning", "Other",  "Other reason for spacing", "Other reason for limiting"))
+
+a<- table1(~reasonnonuse, data= fp)
+a
+  
+```
+```{r}
+# Current Source of FP , rename: q418: sourcester, rename:q448: sourceother
+
+fp$sourcester <- factor(as.numeric(fp$sourcester), levels = c( 1:12 ), labels = c("Government hospital", "Primary Health Care Center/HP",  "Institutional Family Planning Clinics",  "Mobile Camp", "Other Governmental facility", "Family Planning Association of Nepal (FPAN)", "Marie Stopes Clinic (MSI, SPN)", "Other NGO Facilities", "Private Hospital/ Nursing Homes", "Private Clinic", "Other private  Medical Facility", "Unidentified category"))
+
+fp$sourceother <- factor(as.numeric(fp$sourceother), levels = c( 1:21 ), labels = c("Government Hospital", "Primary Health Care Center", "Health Post", "PHC outreach clinic", "Institutional Family Planning Clinic", "Mobile Camp", "FCHV", "Satellite Clinic", "Other governmental institution", "Family Planning Association of Nepal (FPAN)", "Marie Stopes Clinic (MSI, SUNAULO PARIYAWAR NEPAL)", "Other NGO Facility", "Private Hospital/ Nursing Homes", "Private Clinics", "Pharmacy", "Sangini outlet", "Other Private Medical Facility", "Shop", "Friend/Relative", "Other", "Unable to decide category"))
+
+#Method 1
+#Different table for source of sterilization and others
+table1(~sourcester + sourceother, data = fp)
+
+
+#Method 2
+fp <- fp %>% unite("sourcecontra" ,c(sourcester, sourceother), na.rm = TRUE)
+levels(fp$sourcecontra)
+
+describe(fp$sourcecontra)
+
+```
+
+```{r}
+#FP Methods-Mix
+
+#Casescount
+countusingcases <- fp %>%
+  select(usefemster:useothertrad) %>%
+ filter(usefemster == 1 | usemalester == 1 | useiucd == 1|	usedepo == 1|	useimplant ==1|	usepills == 1 |	usecondom== 1 |	useemecon == 1| 	uselam== 1 |	usesdm == 1| 	usecalender == 1 |	usewithdrawl ==1 |	useothermodern == 1 |	useothertrad == 1)
+nrow(countusingcases)
+
+#Casesplot
+methodcase <- countusingcases %>%
+  pivot_longer(c(usefemster:useothertrad), names_to = "method", values_to = "usestatus") %>% 
+    group_by(method) %>%
+    count(usestatus) %>%
+    filter(usestatus == 1) %>%
+    mutate(percentage = n/nrow(countusingcases)) %>%
+    arrange(desc(percentage)) %>%
+  print()
+
+methodsplot <- ggplot(methodcase, aes(x = fct_reorder(method, percentage), y= percentage, label = round(percentage*100,2) , fill = method)) +
+    geom_col() + 
+  coord_flip() +
+  geom_text(size= 4, vjust = 1, hjust = -0.1) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1))+
+      theme_minimal(base_size = 12) +
+  labs(x="", 
+       y= " ", 
+       title = "Percentage of respondents currently using contraception") +
+  scale_x_discrete(labels=c("usedepo" = "Depo", "useimplant" = "Implant",
+                              "usepills" = "Pill", "usefemster" = "Female sterilization", "usecondom" = "Condom", "usemalester" = "Male sterilization", "usewithdrawl" = "Withdrawl", "useiucd" = "IUCD", "useothertrad" = "Other traditional method", "useemecon" = " Emergency contraception")) +
+   theme(plot.title = element_text(hjust = 0.5, size = 16, face="bold"),  axis.text=element_text(size=12)) +
+   theme(legend.position = "none")
+
+  ggsave("Current method.png", plot = methodsplot, width = 15, height = 10, dpi = 300, units = "in" )
+
+#Responsecount
+countusingcases<- countusingcases %>% mutate_if(is.character, as.numeric)
+sum(countusingcases)
+ 
+#Responsesplot
+methodresp <- countusingcases %>%
+  pivot_longer(c(usefemster:useothertrad), names_to = "method", values_to = "usestatus") %>% 
+    group_by(method) %>%
+    count(usestatus) %>%
+    filter(usestatus == 1) %>%
+    mutate(percentage = n/sum(countusingcases)*100) %>%
+    arrange(desc(percentage))%>%
+  print()
+
+  
+ ggplot(methodresp, aes(x = fct_reorder(method, percentage, .desc = F), y= percentage, label = round(percentage,2), fill = method)) +
+    geom_col() + 
+   coord_flip() +
+   scale_y_continuous(labels = scales::percent_format(accuracy = 1))+
+      theme_minimal() +
+   geom_text(size= 4, vjust = 0.5, hjust = -0.00000001) +
+   labs(x="", 
+       y= " Percentage of responses", 
+       title = "Current users of family planning") +
+   theme(plot.title = element_text(hjust = 0.5)) +
+   theme(legend.position = "none")
+```
+
+```{r results="asis"}
+#Abortion
+
+fp$reasonhadabortion <- factor(as.numeric(fp$hadabortion), levels = c("1", "2"), labels = c("Yes", "No"))
+
+fp$reasonabortion <- factor(as.numeric(fp$reasonabortion), levels = c( '1', '2', '3', '4', '5', '6', '7'), labels = c( "Health of mother", "No money to take care of baby", "Wanted to delay childbearing", "Do not want anymore children", "Wanted to space childbirth", "Husband/Partner did not want child", "other"))
+
+fp$postabortioncounsel <- factor(as.numeric(fp$hadabortion), levels = c("1", "2", "3"), labels = c("Yes", "No", "Dont Know"))
+
+tablhadabortion <- arsenal::tableby( ~ factor(hadabortion), data = fp, test = FALSE, cat.stats = "countrowpct" )
+summary(tablhadabortion)
+
+tablreasonabortion <- arsenal::tableby( ~ factor(reasonabortion), data = fp, test = FALSE, cat.stats = "countrowpct" )
+summary(tablreasonabortion)
+
+tablpostabortioncounsel <- arsenal::tableby( ~ factor(postabortioncounsel), data = fp, test = FALSE, cat.stats = "countrowpct" )
+summary(tablpostabortioncounsel)
+
+```
+
+```{r results="asis"}
+#Method Information Index
+
+library(lubridate)
+fp <- fp %>%
+  mutate(sterdate = make_date(steryear, stermnth), otherdate = make_date(otheryear, othermnth))
+
+mii <- fp %>%
+  filter (sterdate > "2072-08-01" | otherdate > "2072-08-01")  %>%
+  filter(primaryfp == "Female sterilization" | primaryfp == "IUCD" | primaryfp == "Depo" | primaryfp == "Pills" | primaryfp == "Implant")
+
+
+#toldabtse	toldabtsester	toldabtsehw	toldwhattodo	toldabtothr	toldabtothrhw
+mii <- mii %>%
+  mutate(sideeffect = ifelse (toldabtse == 1 | toldabtsester == 1 | toldabtsehw == 1, "yes", "no"))
+
+
+mii <- mii %>%
+  mutate(whattodo = ifelse (toldwhattodo == 1, "yes", "no"))
+
+
+mii <- mii %>%
+  mutate(othermeth = ifelse (toldabtothr == 1 | toldabtothrhw == 1 , "yes", "no"))
+
+
+mii <- mii %>%
+  mutate(mii =ifelse (sideeffect == "yes" & whattodo == "yes" & othermeth == "yes", "all three", "less than three"))
+
+tablsideeffect <- arsenal::tableby(  factor(sideeffect) ~ factor(primaryfp),  data = mii, test = FALSE, cat.stats = "countrowpct" )
+summary(tablsideeffect)
+
+tablwhattodo <- arsenal::tableby(  factor(whattodo) ~ factor(primaryfp),   data = mii, test = FALSE, cat.stats = "countrowpct" )
+summary(tablwhattodo)
+
+tablothermeth <- arsenal::tableby(  factor(othermeth) ~ factor(primaryfp),   data = mii, test = FALSE, cat.stats = "countrowpct" )
+summary(tablothermeth)
+
+
+tablothermeth <- arsenal::tableby(  factor(mii) ~ factor(primaryfp),   data = mii, test = FALSE, cat.stats = "countrowpct" )
+summary(tablothermeth)
+
+```
+
+```{r, results="asis"}
+#Lifetime use and its associated : Bivariate analysis
+
+fp <- fp %>%
+  mutate (lifetimeuse = ifelse (currentuse11 == 1 | everusecontra == 1 , 1, 0))
+
+tableverusedcontra<- arsenal::tableby(  factor(lifetimeuse) ~ factor(province) + factor(respcastecode) + factor(respcastecode) + factor(q107) + factor(agegroup) + factor(respedungrp) + factor(q112) + factor(quintile) + factor(ageatmarriagegroup) + factor(q119) + factor(livingchildgrp) + factor(husbedungrp) + factor(q113) + factor(q120a) + factor(spouseagediffgrp) + factor(q122) +  factor(autoassoc) + typeoflocal1,  data = fp, test = TRUE, cat.stats = "countrowpct")
+
+summary(tableverusedcontra, pfootnote = TRUE)
+```
+
+
+```{r, results= "asis"}
+
+#Current use and its associated : Bivariate analysis
+
+tablbivariate <- arsenal::tableby(  factor(currentuse1) ~ factor(province) + factor(respcastecode) + factor(respcastecode) + factor(q107) + factor(agegroup) + factor(respedungrp) + factor(q112) + factor(quintile) + factor(ageatmarriagegroup) + factor(q119) + factor(livingchildgrp) + factor(husbedungrp) + factor(q113) + factor(q120a) + factor(spouseagediffgrp) + factor(q122) +  factor(autoassoc) + factor(typeoflocal1),  data = fp, test = TRUE, cat.stats = "countrowpct" )
+
+summary(tablbivariate, pfootnote = TRUE)
+```
+
+
+```{r}
+#Unmet need
+
+#rename q606: returnmens #rename q322: livebirth#yr & livebirth#mn #rename:q339:wantcurrpreg  #rename:q340a:onechildwaitlimit #rename:q340b:zerochildwaitlimit
+#Note: need to manually a create a new variable for ppa women and if they wanted their next child as in q603, q604 and q605. the variable needs to be named as wantlastchild1, waitlimit1 and waitfor
+#onechildwait and zerochildwait needs to be cleaned based upon q339:wantcurrentpreg
+
+#Create a new date varibale for livebirth: livebirth#date
+library(lubridate)
+
+fp <- fp %>%
+  mutate(livebirth1date = make_date(livebirth1yr,livebirth1mn), livebirth2date = make_date(livebirth2yr,livebirth2mn), livebirth3date = make_date(livebirth3yr,livebirth3mn), livebirth4date = make_date(livebirth4yr,livebirth4mn), livebirth5date = make_date(livebirth5yr,livebirth5mn), livebirth6date = make_date(livebirth6yr,livebirth6mn), livebirth7date = make_date(livebirth7yr,livebirth7mn), livebirth8date = make_date(livebirth8yr,livebirth8mn), livebirth9date = make_date (livebirth9yr,livebirth9mn))
+
+
+#create a  new variable for pregnant or postpartum amenorrheic and  not pregnant or ppa (Postpartum Amenorrheic)
+#missing value indicates those currently using contraception
+
+fp <- fp %>%
+  mutate(pregppa = ifelse(pregnancystat == 1,"Pregnant or PPA",
+                          ifelse(currentuse == 2 & returnmens == 2 & livebirth1date >= "2075-08-01"  |currentuse ==2 &  returnmens == 2 & livebirth2date >= "2075-08-01"  | currentuse ==2 & returnmens == 2 & livebirth3date >= "2075-08-01"  | currentuse ==2 & returnmens == 2 & livebirth4date >= "2075-08-01"  | currentuse ==2 &  returnmens == 2 & livebirth5date >= "2075-08-01"  |  currentuse ==2 & returnmens == 2 & livebirth6date >= "2075-08-01"  |  currentuse ==2 & returnmens == 2 & livebirth7date >= "2075-08-01"  | currentuse ==2 & returnmens == 2 & livebirth8date >= "2075-08-01"  |  currentuse ==2 & returnmens == 2 & livebirth9date >= "2075-08-01" , "Pregnant or PPA",
+                          ifelse(currentuse == 2 & pregnancystat == 2 | currentuse == 2 & pregnancystat == 3 | currentuse == 2 & returnmens == 1,"Non-pregnant or PPA", NA ))))
+describe(fp$pregppa)
+
+
+
+#Create a column to identify pregnant and ppa women seoarately
+fp<- fp %>% mutate(ppa = ifelse(pregppa == "Pregnant or PPA" & pregnancystat == 1, "Pregnant",
+                                ifelse(pregppa == "Pregnant or PPA" & pregnancystat == 2, "PPA" ,NA)))
+describe(fp$pregppa)
+describe(fp$ppa)
+
+## Save this data.frame as fp1.csv Open the file and add the columns for q603:wantlastchild1, q604:waitlimit1 and q605:waitfor manually for PPA women only. Save and continue. 
+
+#write_csv(fp, "fp1.csv")
+
+```
+
+
+
+```{r}
+#unmet 1
+fp <- read.csv("/Users/suman/Documents/Suman/PSD-GHAN-GASD/GoN consultancies/Recent EoIs GoN/FP/Analysis/Test/fp1.csv", stringsAsFactors = FALSE)
+
+fp <- fp %>%
+  mutate(unmet1 = ifelse(currentuse == 1 & usefemster == 1 |currentuse == 1 &  usemalester == 1 | currentuse == 1 & wantnextnonpreg == 2 | currentuse == 1 & timenextchild == "Declared infecund" , "Using to limit",
+                         ifelse(currentuse == 1 & usefemster == 0 | currentuse == 1 & usemalester == 0 | currentuse == 1 & wantnextnonpreg == 1 | currentuse == 1 & wantnextnonpreg == 4, "Using to space", NA)))
+describe(fp$unmet1)
+
+describe(fp$timenextchild)
+#unmet 2
+
+fp <- fp %>%
+  mutate(unmet21 = ifelse(ppa == "Pregnant" & onechildwaitlimit == 2 | ppa == "Pregnant" & zerochildwaitlimit == 2 | ppa == "PPA" & waitlimit1 == 2, "Unmet need for limiting", NA))
+describe(fp$unmet21)
+
+fp <- fp %>%
+  mutate (unmet22 = ifelse( ppa == "Pregnant" & onechildwaitlimit == 1 | ppa == "Pregnant" & zerochildwaitlimit == 1 |   ppa == "PPA" & waitlimit1 == 1, "Unmet need for spacing", NA))
+describe(fp$unmet22)
+                              
+fp <- fp %>%
+  mutate(unmet23 = ifelse( ppa == "Pregnant" & wantcurrpreg == 1 |  ppa == "PPA" & wantlastchild1 == 1, "No unmet need", NA ))
+describe(fp$unmet23)
+
+fp <- fp %>%
+  unite("unmet2", c(unmet21, unmet22, unmet23), na.rm = T)
+
+describe(fp$unmet2)
+
+
+#Unmet 3
+#create a new variable for duration since marriage #needs cleaning
+fp <- fp %>%
+  mutate(agesincemar = q109-q110)
+describe(fp$agesincemar)
+
+#rename: rename :q437:everusecontra, rename: q617:reasonnonuse, rename: q345: year: timesincelastpyr, month:timesincelastpmn, rename:q345.5:hysterectomy, q345.7:nevermens
+
+fp <- fp %>%
+  mutate(hadchildfive1 = ifelse(livebirth1date >= "2072-08-01" | livebirth2date >= "2072-08-01" | livebirth3date >= "2072-08-01"| livebirth4date >= "2072-08-01"| livebirth5date >= "2072-08-01"| livebirth6date >= "2072-08-01" | livebirth7date >= "2072-08-01" | livebirth8date >= "2072-08-01" | livebirth9date >= "2072-08-01", 1, 2))
+
+fp <- fp %>%
+  mutate(unmet3 = ifelse(currentuse == 2 & pregppa == 2 &  agesincemar > 5 & hadchildfive1 == 2 & everusecontra == 2, "Infecund",
+                         ifelse(currentuse == 2 &  pregppa == "Non-pregnant or PPA" & timenextchild == "Declared infecund" | currentuse == 2 &  pregppa == "Non-pregnant or PPA" & wantnextnonpreg == 3,   "Infecund",
+                                ifelse(reasonnonuse == 3, "Infecund",
+                                       ifelse(ppa == 2 & timesincelastpyr >=1 |ppa == 2 & timesincelastpmn >= 6, "Infecund",
+                                              ifelse(hysterectomy == 1 | nevermens == 1, "Infecund",
+                                                     ifelse(hadchildfive1 == 2 & timesincelastpyr > 5, "Infecund", NA)))))))
+describe(fp$unmet3)
+
+describe(fp$timenextchild)
+#Unmet41
+fp <- fp %>%
+  mutate(unmet41 = ifelse(currentuse == 2 & pregppa == "Non-pregnant or PPA" & is.na(unmet3) & timenextchild == "Wants within 2 years", "No unmet need",NA))
+
+#Unmet42
+fp<- fp%>%
+  mutate(unmet42 = ifelse(currentuse == 2 & pregppa == "Non-pregnant or PPA" & is.na(unmet3) & timenextchild == "Wants no more", "Unmet need for limiting", NA))
+
+#Unmet43
+fp <- fp %>%
+  mutate(unmet43 = ifelse(currentuse == 2 & pregppa == "Non-pregnant or PPA" & is.na(unmet3) & timenextchild == "Wants after 2+ years" | currentuse == 2 & pregppa == "Non-pregnant or PPA" & is.na(unmet3) &  timenextchild == "Have another, undecided when"   | currentuse == 2 & pregppa == "Non-pregnant or PPA" & is.na(unmet3) & timenextchild == "Undecided" , "Unmet need for spacing", NA)) 
+
+  
+fp <- fp %>% unite("unmet4", c(unmet41, unmet42, unmet43), na.rm = TRUE, sep = "")
+describe(fp$unmet4)
+
+
+describe(fp$fertpref)
+describe(fp$timenextchild)
+```
+
+```{r}
+#Merge 4 unmet need cells into one
+#Checking for unmet need and data cleaning
+
+fp <- fp %>% unite("unmet", c(unmet1, unmet2, unmet3, unmet4), na.rm = TRUE)
+describe(fp$unmet)
+
+fp <- fp %>%
+  mutate(unmetfinal = ifelse(unmet == "_", "NA",
+                             ifelse(unmet == "_Infecund_", "Infecund",
+                                    ifelse(unmet == "_No unmet need", "No unmet need",
+                                           ifelse(unmet == "_Unmet need for limiting", "Unmet need for limiting",
+                                                  ifelse(unmet == "_Unmet need for spacing", "Unmet need for spacing",
+                                                         ifelse(unmet== "No unmet need_", "No unmet need",
+                                                                 ifelse(unmet == "Unmet need for limiting_", "Unmet need for limiting",
+                                                                        ifelse(unmet == "Unmet need for spacing_", "Unmet need for spacing",
+                                                                               ifelse(unmet == "Using to limit__", "Using to limit",
+                                                                                      ifelse(unmet == "Using to space__", "Using to space", NA)))))))))))
+describe(fp$unmetfinal)
+  
+
+
+
+table1(~unmet, data = fp)
+table1(~ knowfp + usefp + primaryfp + unmetfinal, data = fp)
+
+
+
+
+```
+
+```{r}
+#Additions for unmet need tabulation
+unmettable <- fp %>%
+  filter(unmetfinal != "NA" & unmetfinal != "Infecund" &  unmetfinal != "No unmet need" )
+
+unmettable <- unmettable %>%
+  mutate(demand = ifelse(unmetfinal == "Unmet need for limiting" | unmetfinal == "Using to limit", "Demand for limiting", "Demand for spacing"))
+describe(unmettable$demand)
+
+unmettable <- unmettable %>%
+  mutate(demsatisfied = ifelse(unmetfinal == "Using to limit" | unmetfinal == "Using to space", "Demand satisfied", "Demand not satisfied"))
+describe(unmettable$demsatisfied)
+
+describe(fp$usefp)
+unmettable <- unmettable %>%
+  mutate(demsatisfiedmod = ifelse(unmetfinal == "Using to limit" & usefp == "Modern method" | unmetfinal == "Using to space" & usefp == "Modern method", "Satisfied by modern method", "Not satisfied by modern method" ))
+
+
+```
+
+```{r, results= "asis"}
+#Tabulation for Unmet need by BG variables
+
+#Met and Unmet need
+tablunmetfinal <- arsenal::tableby(  factor(unmetfinal) ~ factor(province) + factor (typeoflocal1) +  factor(respcastecode) + factor(q107) + factor(agegroup) + factor(respedungrp) + factor(q112) + factor(quintile) + factor(ageatmarriagegroup) + factor(q119) + factor(livingchildgrp) + factor(husbedungrp) + factor(q113) + factor(q120a) + factor(spouseagediffgrp) + factor(q122) + q109 + q110 + distance,  data = unmettable, test = FALSE, cat.stats = "countrowpct" )
+summary(tablunmetfinal, title = "Need and demand of FP among all women")
+
+
+#Demand
+tabldemand <- arsenal::tableby(  factor(demand) ~ factor(province) + factor (typeoflocal1) +  factor(respcastecode) + factor(q107) + factor(agegroup) + factor(respedungrp) + factor(q112) + factor(quintile) + factor(ageatmarriagegroup) + factor(q119) + factor(livingchildgrp) + factor(husbedungrp) + factor(q113) + factor(q120a) + factor(spouseagediffgrp) + factor(q122) + q109 + q110 + distance,  data = unmettable, test = FALSE, cat.stats = "countrowpct" )
+summary(tabldemand, title = "Need and demand of FP among all women")
+
+
+#Demand satisfied
+tabldemsatis <- arsenal::tableby(  factor(demsatisfied) ~ factor(province) + factor (typeoflocal1) +  factor(respcastecode) + factor(q107) + factor(agegroup) + factor(respedungrp) + factor(q112) + factor(quintile) + factor(ageatmarriagegroup) + factor(q119) + factor(livingchildgrp) + factor(husbedungrp) + factor(q113) + factor(q120a) + factor(spouseagediffgrp) + factor(q122) + q109 + q110 + distance,  data = unmettable, test = FALSE, cat.stats = "countrowpct" )
+summary(tabldemsatis, title = "Need and demand of FP among all women")
+
+#Demand satisfied by modren methods
+tabldemsatisfiedmod <- arsenal::tableby(  factor(demsatisfiedmod) ~ factor(province) + factor (typeoflocal1) +  factor(respcastecode) + factor(q107) + factor(agegroup) + factor(respedungrp) + factor(q112) + factor(quintile) + factor(ageatmarriagegroup) + factor(q119) + factor(livingchildgrp) + factor(husbedungrp) + factor(q113) + factor(q120a) + factor(spouseagediffgrp) + factor(q122) + q109 + q110 + distance,  data = unmettable, test = FALSE, cat.stats = "countrowpct" )
+summary(tabldemsatisfiedmod, title = "Need and demand of FP among all women")
+
+
+
+
+#table1::table1(~ province + typeoflocal1+ respcastecode + q107 + agegroup + respedungrp +  q112 + quintile + ageatmarriagegroup + q119 + livingchildgrp + husbedungrp + q113 + q120a + spouseagediffgrp + q122+  q109 +q110  + distance | unmetfinal, caption = "Need and demand of Family Planning among all women", data = unmettable)
+
+#table1::table1(~ province + typeoflocal1+ respcastecode + q107 + agegroup + respedungrp +  q112 + quintile + ageatmarriagegroup + q119 + livingchildgrp + husbedungrp + q113 + q120a + spouseagediffgrp + q122+ q109 +q110  + distance | demand, caption = "Need and demand of Family Planning among all women", data = unmettable)
+
+#table1::table1(~ province + typeoflocal1+ respcastecode + q107 + agegroup + respedungrp +  q112 + quintile + ageatmarriagegroup + q119 + livingchildgrp + husbedungrp + q113 + q120a + spouseagediffgrp + q122+  q109 +q110  + distance | demsatisfied, caption = "Need and demand of Family Planning among all women", data = unmettable)
+
+#table1::table1(~ province + typeoflocal1  + respcastecode + q107 + agegroup + respedungrp +  q112 + quintile + ageatmarriagegroup + q119 + livingchildgrp + husbedungrp + q113 + q120a + spouseagediffgrp + q122+  q109 +q110  +  distance | demsatisfiedmod, caption = "Need and demand of Family Planning among all women", data = unmettable)
+
+
+```
+
+
+```{r, results="asis"}
+# Household possessions
+
+household <- arsenal::tableby(factor(typeoflocal1) ~ factor(tv) + factor(fridge) + factor(phone) + factor(twowheel) + factor(threewheel) + factor(exputen) + factor(toilet) + factor(floor) + factor(cheaputen1) + factor(electricity) + factor(water) + factor(toilet) + factor(floor) + factor(sroom) + factor(healthdecision) + factor (purchasedecision) + factor(visitdecision) , data = fp, test= FALSE, cat.stats = "countrowpct")
+summary(household)
+
+```
+```{r}
+#unintended pregnancy
+#Discontinuation Rate
+```
+
+
+
+```{r results="asis"}
+library(jtools)
+library(ResourceSelection)
+library(broom)
+library(stargazer)
+library(DescTools)
+#Multiple logistic regression
+
+#Null Model
+model0 <- glm(factor(fp$lifetimeuse) ~ 1, family = binomial(link = "logit"))
+summary(model0)
+
+```
+
+#First model
+model1 <- glm(factor(fp$lifetimeuse) ~ factor(fp$province) + + factor(fp$typeoflocal1) + factor(fp$respcastecode) + factor(fp$respcastecode) + factor(fp$q107) + factor(fp$agegroup) + factor(fp$respedungrp) + factor(fp$q112) + factor(fp$quintile) + factor(fp$ageatmarriagegroup) + factor(fp$q119) + factor(fp$livingchildgrp) + factor(fp$husbedungrp) + factor(fp$q113) + factor(fp$q120a) + factor(fp$spouseagediffgrp) + factor(fp$q122)  , family = binomial(link = "logit"))
+summary(model1)
+od <- exp(model1$coefficients)
+od
+confint(model1)
+
+# Let's see the model summary from summ function of jtools package
+summ(model1, confint = TRUE,  pvals = TRUE, exp = TRUE)
+summ(model1, robust = F)
+
+
+VIF(model1)
+
+HL2 <- hoslem.test(x= model1$y, y= fitted(model1), g=10)
+HL2
+
+Cstat(model1)
+
+anova(model1, test = "Chisq")
+
+plot(model1)
+
+tidy(model1)
+
+
+
+
+```{r results = "asis"}
+#Make variables ready for final model: Remove religion and  recode other variables: age group, education,age at marriage, husband education
+
+fp <- fp %>%
+  mutate(magegroup = ifelse (agegroup == "15-19", "15-19",
+                                 ifelse(agegroup == "20-24", "20-24",
+                                        ifelse(agegroup == "25-29", "25-29",
+                                               ifelse (agegroup == "30-34", "30-34",
+                                                       ifelse(agegroup == "35-39", "35-39","40-49"))))))
+fp <- fp %>%
+  mutate(mrespedungrp = ifelse(respedungrp == "None", "None",
+                               ifelse(respedungrp == "Primary", "Primary",
+                                      ifelse(respedungrp == "Secondary", "Secondary", "+2 and above"))))
+
+
+fp <- fp %>%
+  mutate(mageatmarriagegroup = ifelse (ageatmarriagegroup == "14 or less", "14 or less",
+                                       ifelse(ageatmarriagegroup == "15-19", "15-19",
+                                              ifelse(ageatmarriagegroup == "20-24", "20-24", "25 and above"))))
+  
+
+fp <- fp %>%
+  mutate(mhusbedungrp = ifelse(husbedungrp == "None", "None",
+                               ifelse(husbedungrp == "Primary", "Primary",
+                                      ifelse(husbedungrp == "Secondary", "Secondary", "+2 and above"))))
+
+fp <- fp %>%
+  mutate(mq122 = ifelse(q122 == "Nuclear", "Nuclear", "Joint or extended"))
+
+
+fp <- fp %>%
+  mutate(mrespcastecode = ifelse(respcastecode1 == "Hill Brahmin" | respcastecode1 ==  "Hill Chhettri" | respcastecode1 == "Tarai Brahmin/Chhettri", "Brahmin/Chhettri",  ifelse(respcastecode1 == "Hill Dalit", "Hill Dalit",
+                                       ifelse(respcastecode1 == "Tarai Dalit", "Tarai Dalit",
+                                              ifelse(respcastecode1 == "Hill Janajati", "Others",
+                                                      ifelse(respcastecode1 == "Tarai Janajati", "Others",
+                                                             ifelse(respcastecode1 == "Muslim", "Muslim", "Others")))))))
+
+
+fp <- fp %>%
+  mutate(mq113 = ifelse(q113 == "Agriculture", "Agriculture",
+                        ifelse(q113 == "Government service", "Government/Private Service",
+                                               ifelse(q113 == "Private job", "Government/Private Service",
+                                                      ifelse(q113 == "Daily wage / labourer", "Daily wage / labourer / Others",
+                                                             ifelse(q113 == "Business", "Business",
+                                                                    ifelse(q113 == "Foreign employment", "Foregin employment", "Daily wage / labourer / Others")))))))
+
+fp <- fp %>%
+  mutate(mq112 = ifelse (q112 == "Housewife", "Housewife or Unemployed",
+                         ifelse(q112 == "Agriculture", "Agriculture",
+                                ifelse(q112 == "Paid employment (Private job, Daily wage, Foreign employment)", "Paid employment (Private job, Daily wage, Foreign employment)", "Housewife or Unemployed" ))))
+
+
+  
+
+#Relevel variables and specify reference variabe
+
+fp$province <-  as.factor(fp$province)
+fp$province <- relevel(fp$province, ref = "one")
+
+fp$magegroup <-  as.factor(fp$magegroup)
+fp$magegroup <- relevel(fp$magegroup, ref = "40-49")
+
+fp$mrespedungrp <-  as.factor(fp$mrespedungrp)
+fp$mrespedungrp <- relevel(fp$mrespedungrp, ref = "None")
+
+fp$quintile <-  as.factor(fp$quintile)
+fp$quintile <- relevel(fp$quintile, ref = "[ 7.14,27.9)")
+
+fp$mq112 <-  as.factor(fp$mq112)
+fp$mq112 <- relevel(fp$mq112, ref = "Housewife or Unemployed" )
+
+
+fp$mageatmarriagegroup <-  as.factor(fp$mageatmarriagegroup)
+fp$mageatmarriagegroup <- relevel(fp$mageatmarriagegroup, ref = "14 or less")
+
+fp$mageatmarriagegroup <-  as.factor(fp$mageatmarriagegroup)
+fp$mageatmarriagegroup <- relevel(fp$mageatmarriagegroup, ref = "14 or less")
+
+fp$q119 <-  as.factor(fp$q119)
+fp$q119 <- relevel(fp$q119, ref = "Yes")
+
+fp$mhusbedungrp <-  as.factor(fp$mhusbedungrp)
+fp$mhusbedungrp <- relevel(fp$mhusbedungrp, ref = "None")
+
+fp$q120a <-  as.factor(fp$q120a)
+fp$q120a <- relevel(fp$q120a, ref = "Staying elsewhere")
+
+fp$spouseagediffgrp <- as.factor(fp$spouseagediffgrp)
+fp$spouseagediffgrp <- relevel(fp$spouseagediffgrp, ref = "Woman older")
+
+fp$mq122 <- as.factor(fp$mq122)
+fp$mq122 <- relevel(fp$mq122, ref = "Joint or extended")
+
+
+
+
+#Final model
+model2 <- glm(factor(fp$lifetimeuse) ~ factor(fp$province) + + factor(fp$typeoflocal1) + factor(fp$mrespcastecode) +  factor(fp$magegroup) + factor(fp$mrespedungrp) + factor(fp$mq112) + factor(fp$quintile) + factor(fp$mageatmarriagegroup) + factor(fp$q119) + factor(fp$livingchildgrp) + factor(fp$mhusbedungrp) + factor(fp$mq113) + factor(fp$q120a) + factor(fp$spouseagediffgrp) + factor(fp$mq122) + factor(fp$autoassoc)  , family = binomial(link = "logit"))
+
+
+summary(model2)
+od1 <- exp(model2$coefficients)
+od1
+confint(model2)
+
+
+
+# Let's see the model summary from summ function of jtools package
+summ(model2, confint = TRUE,  pvals = TRUE, exp = TRUE, vifs = TRUE, model.fit = TRUE )
+summ(model2, robust = F)
+
+
+HL3 <- hoslem.test(x= model2$y, y = fitted(model2), g=10)
+HL3
+
+Cstat(model2)
+
+anova(model2, test = "Chisq")
+
+plot(model2)
+
+
+```
+
+
